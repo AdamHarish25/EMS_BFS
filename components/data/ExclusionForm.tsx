@@ -7,13 +7,15 @@ const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Pl
 
 export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (data: any) => void }) {
   const [unitId, setUnitId] = useState('AC-01');
+  const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
   const [reason, setReason] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startTime || !endTime || !reason) {
+    if (!startDate || !startTime || !endDate || !endTime || !reason) {
       toast.error('Semua kolom harus diisi');
       return;
     }
@@ -21,15 +23,17 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
     onAddExclusion({
       id: Math.random().toString(36).substring(7),
       unit_id: unitId,
-      timestamp_start: new Date(startTime).toISOString(),
-      timestamp_end: new Date(endTime).toISOString(),
+      timestamp_start: new Date(`${startDate}T${startTime}`).toISOString(),
+      timestamp_end: new Date(`${endDate}T${endTime}`).toISOString(),
       reason,
       excluded_by: 'admin@example.com',
       created_date: new Date().toISOString()
     });
 
     toast.success('Pengecualian data berhasil ditambahkan');
+    setStartDate('');
     setStartTime('');
+    setEndDate('');
     setEndTime('');
     setReason('');
   };
@@ -54,22 +58,43 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1">Start Period</div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Start Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Date</label>
             <input
-              type="datetime-local"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">End Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Time</label>
             <input
-              type="datetime-local"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            />
+          </div>
+
+          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1 mt-2">End Period</div>
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Time</label>
+            <input
+              type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             />
           </div>
         </div>
