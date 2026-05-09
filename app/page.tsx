@@ -43,6 +43,8 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    const rooms = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Mold', 'WIP'];
+    
     // Generate some initial mock data
     const initialData = Array.from({ length: 20 }).map((_, i) => {
       const time = new Date();
@@ -52,7 +54,7 @@ export default function Dashboard() {
       const dp = 19 + Math.random() * 4;     // Will cross 21 and 20 occasionally
       return {
         timestamp: time.toISOString(),
-        unit_id: 'AC-01',
+        unit_id: rooms[i % rooms.length],
         temperature: temp,
         relative_humidity: rh,
         differential_pressure: dp,
@@ -69,7 +71,7 @@ export default function Dashboard() {
         const dp = 19 + Math.random() * 4;
         const newData = [...prev.slice(1), {
           timestamp: new Date().toISOString(),
-          unit_id: 'AC-01',
+          unit_id: rooms[Math.floor(Math.random() * rooms.length)],
           temperature: temp,
           relative_humidity: rh,
           differential_pressure: dp,

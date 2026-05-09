@@ -13,22 +13,28 @@ export default function ReportsPage() {
       return 'normal';
     };
 
-    // Generate mock data
-    const mockReadings = Array.from({ length: 60 }).map((_, i) => {
-      const time = new Date();
-      time.setMinutes(time.getMinutes() - (60 - i) * 10);
-      const temp = 23 + Math.random() * 1.5; 
-      const rh = 57 + Math.random() * 2.5;     
-      const dp = 21.5 + Math.random() * 2;
-      return {
-        id: `r-${i}`,
-        timestamp: time.toISOString(),
-        unit_id: 'AC-01',
-        temperature: temp,
-        relative_humidity: rh,
-        differential_pressure: dp,
-        status: 'normal'
-      };
+    // Generate mock data for all rooms
+    const rooms = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Mold', 'WIP'];
+    const mockReadings: any[] = [];
+    
+    rooms.forEach((room) => {
+      const roomReadings = Array.from({ length: 60 }).map((_, i) => {
+        const time = new Date();
+        time.setMinutes(time.getMinutes() - (60 - i) * 10);
+        const temp = 23 + Math.random() * 1.5; 
+        const rh = 57 + Math.random() * 2.5;     
+        const dp = 21.5 + Math.random() * 2;
+        return {
+          id: `r-${room}-${i}`,
+          timestamp: time.toISOString(),
+          unit_id: room,
+          temperature: temp,
+          relative_humidity: rh,
+          differential_pressure: dp,
+          status: 'normal'
+        };
+      });
+      mockReadings.push(...roomReadings);
     });
     
     // Create an anomaly bump for the excluded part

@@ -15,6 +15,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reportType, setReportType] = useState('Semua Data'); // Semua Data, Fumigasi, Non-Fumigasi
+  const [selectedRoom, setSelectedRoom] = useState('All Rooms');
+  const ROOMS = ['All Rooms', 'Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Mold', 'WIP'];
 
   const isExcluded = (reading: any) => {
     return exclusions.some(exc => {
@@ -26,8 +28,12 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     });
   };
 
-  // 1. Date Filtering
+  // 1. Filtering
   const dateFilteredReadings = readings.filter(r => {
+    // Room Filter
+    if (selectedRoom !== 'All Rooms' && r.unit_id !== selectedRoom) return false;
+
+    // Date Filter
     const time = new Date(r.timestamp).getTime();
     
     if (startDate) {
@@ -75,13 +81,14 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       pdf.setTextColor(100);
       pdf.text(`Generated on: ${format(new Date(), 'PPP p')}`, 14, 28);
       pdf.text(`Report Type: ${reportType}`, 14, 34);
+      pdf.text(`Ruangan: ${selectedRoom}`, 14, 40);
       
       const dateRangeText = startDate || endDate 
         ? `Period: ${startDate ? format(new Date(startDate), 'PPP p') : 'Start'} to ${endDate ? format(new Date(endDate), 'PPP p') : 'Now'}`
         : 'Period: All Time';
-      pdf.text(dateRangeText, 14, 40);
+      pdf.text(dateRangeText, 14, 46);
 
-      let finalY = 46;
+      let finalY = 52;
 
       // CHART
       if (chartRef.current) {
@@ -227,7 +234,19 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           Filter Configuration
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Ruangan (Unit)</label>
+            <select 
+              value={selectedRoom}
+              onChange={(e) => setSelectedRoom(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            >
+              {ROOMS.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">Start Date</label>
             <div className="relative">

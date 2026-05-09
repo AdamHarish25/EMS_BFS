@@ -16,6 +16,7 @@ export default function DataManagementPage() {
     };
 
     // Generate some mock data for readings
+    const rooms = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Mold', 'WIP'];
     const mockReadings = Array.from({ length: 50 }).map((_, i) => {
       const time = new Date();
       time.setMinutes(time.getMinutes() - (50 - i) * 15); // 15 min intervals
@@ -25,7 +26,7 @@ export default function DataManagementPage() {
       return {
         id: `r-${i}`,
         timestamp: time.toISOString(),
-        unit_id: 'AC-01',
+        unit_id: rooms[i % rooms.length],
         temperature: temp,
         relative_humidity: rh,
         differential_pressure: dp,
