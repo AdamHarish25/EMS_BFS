@@ -1,0 +1,93 @@
+"use client";
+import { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (data: any) => void }) {
+  const [unitId, setUnitId] = useState('AC-01');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [reason, setReason] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!startTime || !endTime || !reason) {
+      toast.error('Semua kolom harus diisi');
+      return;
+    }
+    
+    onAddExclusion({
+      id: Math.random().toString(36).substring(7),
+      unit_id: unitId,
+      timestamp_start: new Date(startTime).toISOString(),
+      timestamp_end: new Date(endTime).toISOString(),
+      reason,
+      excluded_by: 'admin@example.com',
+      created_date: new Date().toISOString()
+    });
+    
+    toast.success('Pengecualian data berhasil ditambahkan');
+    setStartTime('');
+    setEndTime('');
+    setReason('');
+  };
+
+  return (
+    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
+      <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
+        <AlertCircle className="w-5 h-5 text-rose-500" />
+        Add Data Exclusion
+      </h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-400 mb-1">Unit ID</label>
+          <select 
+            value={unitId}
+            onChange={(e) => setUnitId(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          >
+            <option value="AC-01">AC-01</option>
+            <option value="AC-02">AC-02</option>
+            <option value="All Units">All Units</option>
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Start Time</label>
+            <input 
+              type="datetime-local" 
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1">End Time</label>
+            <input 
+              type="datetime-local" 
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-400 mb-1">Reason for Exclusion</label>
+          <textarea 
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
+            placeholder="e.g. Sensor calibration, Maintenance..."
+          />
+        </div>
+        <button 
+          type="submit"
+          className="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-2.5 rounded-xl transition-colors shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+        >
+          Exclude Data
+        </button>
+      </form>
+    </div>
+  );
+}
