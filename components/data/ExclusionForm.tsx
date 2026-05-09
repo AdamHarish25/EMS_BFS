@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
+const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Mold', 'WIP'];
+
 export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (data: any) => void }) {
   const [unitId, setUnitId] = useState('AC-01');
   const [startTime, setStartTime] = useState('');
@@ -15,7 +17,7 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
       toast.error('Semua kolom harus diisi');
       return;
     }
-    
+
     onAddExclusion({
       id: Math.random().toString(36).substring(7),
       unit_id: unitId,
@@ -25,7 +27,7 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
       excluded_by: 'admin@example.com',
       created_date: new Date().toISOString()
     });
-    
+
     toast.success('Pengecualian data berhasil ditambahkan');
     setStartTime('');
     setEndTime('');
@@ -41,21 +43,21 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-400 mb-1">Unit ID</label>
-          <select 
+          <select
             value={unitId}
             onChange={(e) => setUnitId(e.target.value)}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
-            <option value="AC-01">AC-01</option>
-            <option value="AC-02">AC-02</option>
-            <option value="All Units">All Units</option>
+            {ROOMS.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1">Start Time</label>
-            <input 
-              type="datetime-local" 
+            <input
+              type="datetime-local"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -63,8 +65,8 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1">End Time</label>
-            <input 
-              type="datetime-local" 
+            <input
+              type="datetime-local"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -73,7 +75,7 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-400 mb-1">Reason for Exclusion</label>
-          <textarea 
+          <textarea
             rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -81,7 +83,7 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
             placeholder="e.g. Sensor calibration, Maintenance..."
           />
         </div>
-        <button 
+        <button
           type="submit"
           className="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-2.5 rounded-xl transition-colors shadow-[0_0_15px_rgba(244,63,94,0.3)]"
         >
