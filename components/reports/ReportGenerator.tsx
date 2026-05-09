@@ -29,8 +29,19 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   // 1. Date Filtering
   const dateFilteredReadings = readings.filter(r => {
     const time = new Date(r.timestamp).getTime();
-    if (startDate && time < new Date(startDate).getTime()) return false;
-    if (endDate && time > new Date(endDate).getTime()) return false;
+    
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0); // Start of the selected day
+      if (time < start.getTime()) return false;
+    }
+    
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // End of the selected day
+      if (time > end.getTime()) return false;
+    }
+    
     return true;
   });
 
@@ -218,11 +229,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Start Date & Time</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Start Date</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input 
-                type="datetime-local" 
+                type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -230,11 +241,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">End Date & Time</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">End Date</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input 
-                type="datetime-local" 
+                type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
