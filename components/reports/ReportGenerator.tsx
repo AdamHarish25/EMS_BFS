@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -16,7 +16,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   const [endDate, setEndDate] = useState('');
   const [reportType, setReportType] = useState('Semua Data'); // Semua Data, Fumigasi, Non-Fumigasi
   const [selectedRoom, setSelectedRoom] = useState('All Rooms');
-  const ROOMS = ['All Rooms', 'Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Mold', 'WIP'];
+  
+  const uniqueRooms = React.useMemo(() => {
+    const rooms = Array.from(new Set(readings.map(r => r.unit_id)));
+    return rooms.filter(Boolean).sort();
+  }, [readings]);
 
   const isExcluded = (reading: any) => {
     return exclusions.some(exc => {
@@ -240,8 +244,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               onChange={(e) => setSelectedRoom(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
-              {ROOMS.map(r => (
-                <option key={r} value={r}>{r}</option>
+              <option value="All Rooms">All Rooms</option>
+              {uniqueRooms.map(r => (
+                <option key={r as string} value={r as string}>{r as string}</option>
               ))}
             </select>
           </div>
