@@ -8,9 +8,8 @@ import DataTable from '@/components/data/DataTable';
 export default function DataManagementPage() {
   const [readings, setReadings] = useState<any[]>([]);
   const [exclusions, setExclusions] = useState<any[]>([{
-    id: 'exc-1',
-    unit_id: 'AC-01',
-    // Gunakan tanggal statis agar tidak terjadi Hydration Error antara Server dan Client
+    id: '1',
+    unit_id: 'Dispensing 1',
     timestamp_start: '2026-05-11T10:00:00.000Z',
     timestamp_end: '2026-05-11T12:00:00.000Z',
     reason: 'Fumigasi rutin mingguan',
@@ -29,19 +28,19 @@ export default function DataManagementPage() {
         const response = await fetch('http://10.165.40.127:1880/api/ems-bfs');
         if (!response.ok) throw new Error('Failed to fetch data');
         const data = await response.json();
-        
+
         // Normalize data to array
         const dataArray = Array.isArray(data) ? data : (data.data ? data.data : [data]);
-        
+
         const formattedData = dataArray.map((item: any, i: number) => {
           const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
           let parsedTime = new Date();
-          
+
           if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
-             const tsStr = String(rawTime);
-             parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
+            const tsStr = String(rawTime);
+            parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
           } else {
-             parsedTime = new Date(rawTime);
+            parsedTime = new Date(rawTime);
           }
 
           return {
@@ -53,7 +52,7 @@ export default function DataManagementPage() {
             status: (typeof item.status === 'string' ? item.status.trim().toLowerCase() : item.status) || getStatus(item.temperature, item.relative_humidity, item.differential_pressure)
           };
         });
-        
+
         setReadings(formattedData.reverse()); // Keep newest first for data table
       } catch (error) {
         console.error('Error fetching management data:', error);
@@ -61,7 +60,7 @@ export default function DataManagementPage() {
     };
 
     fetchData();
-    
+
     // Poll every 5 seconds for real-time reporting updates
     const interval = setInterval(fetchData, 5000);
 
@@ -82,7 +81,7 @@ export default function DataManagementPage() {
         <h1 className="text-3xl font-bold text-slate-50 tracking-tight">Data Management</h1>
         <p className="text-slate-400">Manage data exclusions and view raw sensor telemetry.</p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
           <ExclusionForm onAddExclusion={handleAddExclusion} />
