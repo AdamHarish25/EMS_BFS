@@ -7,7 +7,15 @@ import DataTable from '@/components/data/DataTable';
 
 export default function DataManagementPage() {
   const [readings, setReadings] = useState<any[]>([]);
-  const [exclusions, setExclusions] = useState<any[]>([]);
+  const [exclusions, setExclusions] = useState<any[]>([{
+    id: 'exc-1',
+    unit_id: 'AC-01',
+    // Gunakan tanggal statis agar tidak terjadi Hydration Error antara Server dan Client
+    timestamp_start: '2026-05-11T10:00:00.000Z',
+    timestamp_end: '2026-05-11T12:00:00.000Z',
+    reason: 'Fumigasi rutin mingguan',
+    excluded_by: 'admin@base44.io'
+  }]);
 
   useEffect(() => {
     const getStatus = (temp: number, rh: number, dp: number) => {
@@ -47,21 +55,6 @@ export default function DataManagementPage() {
         });
         
         setReadings(formattedData.reverse()); // Keep newest first for data table
-        
-        // Keep some mock exclusions for UI demonstration since API might not have them yet
-        const pastTime = new Date();
-        pastTime.setHours(pastTime.getHours() - 3);
-        const pastTimeEnd = new Date();
-        pastTimeEnd.setHours(pastTimeEnd.getHours() - 1);
-        
-        setExclusions([{
-          id: 'exc-1',
-          unit_id: 'AC-01',
-          timestamp_start: pastTime.toISOString(),
-          timestamp_end: pastTimeEnd.toISOString(),
-          reason: 'Scheduled maintenance and sensor calibration',
-          excluded_by: 'admin@base44.io'
-        }]);
       } catch (error) {
         console.error('Error fetching management data:', error);
       }

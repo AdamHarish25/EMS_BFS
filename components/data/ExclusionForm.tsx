@@ -13,29 +13,49 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
   const [endTime, setEndTime] = useState('');
   const [reason, setReason] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!startDate || !startTime || !endDate || !endTime || !reason) {
       toast.error('Semua kolom harus diisi');
       return;
     }
 
-    onAddExclusion({
+    const payload = {
       id: Math.random().toString(36).substring(7),
       unit_id: unitId,
       timestamp_start: new Date(`${startDate}T${startTime}`).toISOString(),
       timestamp_end: new Date(`${endDate}T${endTime}`).toISOString(),
       reason,
-      excluded_by: 'admin@example.com',
+      excluded_by: 'admin@base44.io',
       created_date: new Date().toISOString()
-    });
+    };
 
-    toast.success('Pengecualian data berhasil ditambahkan');
-    setStartDate('');
-    setStartTime('');
-    setEndDate('');
-    setEndTime('');
-    setReason('');
+    try {
+      setIsSubmitting(true);
+      const res = await fetch('http://10.165.40.127:1880/api/exclude-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal memindahkan data');
+
+      toast.success(data.message || 'Pengecualian data berhasil diproses');
+      onAddExclusion(payload);
+
+      setStartDate('');
+      setStartTime('');
+      setEndDate('');
+      setEndTime('');
+      setReason('');
+    } catch (err: any) {
+      toast.error(err.message || 'Terjadi kesalahan saat menghubungi database');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -110,9 +130,10 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
         </div>
         <button
           type="submit"
-          className="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-2.5 rounded-xl transition-colors shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+          disabled={isSubmitting}
+          className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-medium py-2.5 rounded-xl transition-colors shadow-[0_0_15px_rgba(244,63,94,0.3)]"
         >
-          Exclude Data
+          {isSubmitting ? 'Memproses...' : 'Exclude Data & Move to DB'}
         </button>
       </form>
     </div>
