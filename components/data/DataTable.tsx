@@ -38,7 +38,7 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
               return (
                 <tr key={r.id || i} className={`hover:bg-slate-800/40 transition-colors ${excluded ? 'opacity-40 bg-rose-950/10 hover:bg-rose-950/20' : ''}`}>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-300">
-                    {format(new Date(r.timestamp), 'MMM dd, yyyy HH:mm:ss')}
+                    {r.jam_asli || format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm:ssx')}
                   </td>
                   <td className="px-6 py-4 text-slate-300 font-medium">{r.unit_id}</td>
                   <td className="px-6 py-4 text-slate-300">{r.temperature.toFixed(1)}</td>
@@ -52,7 +52,7 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
                       </span>
                     )}
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold border tracking-wider
-                      ${r.status === 'normal' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                      ${r.status === 'normal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
                         r.status === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
                         'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
                       {r.status}

@@ -28,7 +28,7 @@ export default function RecentReadings({ readings }: { readings: any[] }) {
                 <td className="px-4 py-3">{reading.differential_pressure.toFixed(1)}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                    reading.status === 'normal' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                    reading.status === 'normal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                     reading.status === 'warning' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
                     'bg-red-500/10 text-red-400 border-red-500/20'
                   }`}>

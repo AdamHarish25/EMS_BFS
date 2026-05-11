@@ -12,13 +12,13 @@ interface MetricCardProps {
 
 export default function MetricCard({ title, value, unit, icon: Icon, trend, status = 'normal', trendValue }: MetricCardProps) {
   const statusColors = {
-    normal: 'bg-green-500/20 text-green-400 border-green-500/20',
+    normal: 'bg-blue-500/20 text-blue-400 border-blue-500/20',
     warning: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20',
     critical: 'bg-red-500/20 text-red-400 border-red-500/20',
   };
 
   const statusGlow = {
-    normal: 'shadow-[0_0_15px_rgba(34,197,94,0.1)]',
+    normal: 'shadow-[0_0_15px_rgba(59,130,246,0.1)]',
     warning: 'shadow-[0_0_15px_rgba(234,179,8,0.1)]',
     critical: 'shadow-[0_0_15px_rgba(239,68,68,0.1)]',
   };
