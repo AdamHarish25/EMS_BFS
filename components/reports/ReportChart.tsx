@@ -41,16 +41,16 @@ export default function ReportChart({ readings, exclusions }: { readings: any[],
           <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
           
           {/* Temperature */}
-          <Line type="monotone" dataKey="validTemp" name="Valid Temp (°C)" stroke="#3b82f6" strokeWidth={3} dot={false} connectNulls={false} />
-          <Line type="monotone" dataKey="excludedTemp" name="Excluded Temp" stroke="#ef4444" strokeWidth={3} strokeDasharray="6 6" dot={{ r: 4, fill: '#ef4444' }} connectNulls={false} />
+          <Line isAnimationActive={false} type="monotone" dataKey="validTemp" name="Valid Temp (°C)" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} connectNulls={false} />
+          <Line isAnimationActive={false} type="monotone" dataKey="excludedTemp" name="Excluded Temp" stroke="#ef4444" strokeWidth={2} strokeDasharray="6 6" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} connectNulls={false} />
           
           {/* Relative Humidity */}
-          <Line type="monotone" dataKey="validRH" name="Valid RH (%)" stroke="#10b981" strokeWidth={3} dot={false} connectNulls={false} />
-          <Line type="monotone" dataKey="excludedRH" name="Excluded RH" stroke="#f43f5e" strokeWidth={3} strokeDasharray="6 6" dot={{ r: 4, fill: '#f43f5e' }} connectNulls={false} />
+          <Line isAnimationActive={false} type="monotone" dataKey="validRH" name="Valid RH (%)" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} connectNulls={false} />
+          <Line isAnimationActive={false} type="monotone" dataKey="excludedRH" name="Excluded RH" stroke="#f43f5e" strokeWidth={2} strokeDasharray="6 6" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} connectNulls={false} />
           
           {/* Differential Pressure */}
-          <Line type="monotone" dataKey="validDP" name="Valid DP (Pa)" stroke="#eab308" strokeWidth={3} dot={false} connectNulls={false} />
-          <Line type="monotone" dataKey="excludedDP" name="Excluded DP" stroke="#f97316" strokeWidth={3} strokeDasharray="6 6" dot={{ r: 4, fill: '#f97316' }} connectNulls={false} />
+          <Line isAnimationActive={false} type="monotone" dataKey="validDP" name="Valid DP (Pa)" stroke="#eab308" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} connectNulls={false} />
+          <Line isAnimationActive={false} type="monotone" dataKey="excludedDP" name="Excluded DP" stroke="#f97316" strokeWidth={2} strokeDasharray="6 6" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} connectNulls={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

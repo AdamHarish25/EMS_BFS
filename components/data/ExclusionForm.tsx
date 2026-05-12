@@ -34,13 +34,25 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
 
     try {
       setIsSubmitting(true);
+      
+      // --- TAMBAHAN DEBUGGING (SEBELUM FETCH) ---
+      console.log("[DEBUG] Memulai proses POST ke Node-RED...");
+      console.log("[DEBUG] Target URL: http://10.165.40.127:1880/api/exclude-data");
+      console.log("[DEBUG] Payload yang dikirim:", payload);
+
       const res = await fetch('http://10.165.40.127:1880/api/exclude-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
+      // --- TAMBAHAN DEBUGGING (SETELAH FETCH) ---
+      console.log("[DEBUG] Respons dari Node-RED diterima!");
+      console.log("[DEBUG] Status Code:", res.status, res.statusText);
+
       const data = await res.json();
+      console.log("[DEBUG] Data Balasan Node-RED:", data);
+
       if (!res.ok) throw new Error(data.error || 'Gagal memindahkan data');
 
       toast.success(data.message || 'Pengecualian data berhasil diproses');
@@ -52,7 +64,16 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
       setEndTime('');
       setReason('');
     } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan saat menghubungi database');
+      // --- TAMBAHAN DEBUGGING (JIKA ERROR) ---
+      console.error("[DEBUG ERROR] Request ke Node-RED GAGAL!");
+      console.error("[DEBUG ERROR] Detail:", err);
+      
+      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+        toast.error('NETWORK ERROR: Node-RED tidak bisa dijangkau. Cek CORS di Node-RED atau pastikan IP benar.');
+        console.error("[DEBUG ERROR] Ini biasanya terjadi karena masalah CORS (Cross-Origin Resource Sharing) yang belum diaktifkan di Node-RED, atau Node-RED dalam keadaan mati.");
+      } else {
+        toast.error(err.message || 'Terjadi kesalahan saat menghubungi database');
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -4,6 +4,7 @@ import "./globals.css";
 import AppLayout from "@/components/layout/AppLayout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Providers } from "./providers";
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <AppLayout>{children}</AppLayout>
+          <Toaster theme="dark" position="bottom-right" />
         </Providers>
       </body>
     </html>

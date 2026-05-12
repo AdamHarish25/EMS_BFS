@@ -15,12 +15,16 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reportType, setReportType] = useState('Semua Data'); // Semua Data, Fumigasi, Non-Fumigasi
-  const [selectedRoom, setSelectedRoom] = useState('All Rooms');
+  const [selectedRoom, setSelectedRoom] = useState('Pilih Ruangan');
   
   const uniqueRooms = React.useMemo(() => {
-    const rooms = Array.from(new Set(readings.map(r => r.unit_id)));
+    const allRooms = [
+      ...readings.map(r => r.unit_id),
+      ...exclusions.map(e => e.unit_id)
+    ];
+    const rooms = Array.from(new Set(allRooms));
     return rooms.filter(Boolean).sort();
-  }, [readings]);
+  }, [readings, exclusions]);
 
   const isExcluded = (reading: any) => {
     return exclusions.some(exc => {
@@ -35,7 +39,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   // 1. Filtering
   const dateFilteredReadings = readings.filter(r => {
     // Room Filter
-    if (selectedRoom !== 'All Rooms' && r.unit_id !== selectedRoom) return false;
+    if (selectedRoom === 'Pilih Ruangan') return false; // return empty if nothing selected
+    if (r.unit_id !== selectedRoom) return false;
 
     // Date Filter
     const time = new Date(r.timestamp).getTime();
@@ -244,7 +249,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               onChange={(e) => setSelectedRoom(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
-              <option value="All Rooms">All Rooms</option>
+              <option value="Pilih Ruangan">-- Pilih Ruangan --</option>
               {uniqueRooms.map(r => (
                 <option key={r as string} value={r as string}>{r as string}</option>
               ))}
@@ -336,7 +341,15 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         
         {/* We wrap it in a ref so html2canvas can capture it */}
         <div ref={chartRef} className="p-6 bg-[#0f172a] rounded-xl border border-slate-800">
-          <ReportChart readings={dateFilteredReadings} exclusions={exclusions} />
+          {selectedRoom === 'Pilih Ruangan' ? (
+            <div className="w-full h-[400px] flex flex-col items-center justify-center text-slate-500">
+              <Filter className="w-12 h-12 mb-4 opacity-30" />
+              <p className="text-xl font-medium text-slate-400">Pilih Ruangan Dulu</p>
+              <p className="text-sm mt-2">Silakan pilih ruangan di filter untuk melihat preview grafik.</p>
+            </div>
+          ) : (
+            <ReportChart readings={dateFilteredReadings} exclusions={exclusions} />
+          )}
         </div>
       </div>
     </div>

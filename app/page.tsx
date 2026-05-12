@@ -8,7 +8,7 @@ import RecentReadings from '@/components/dashboard/RecentReadings';
 
 export default function Dashboard() {
   const [readings, setReadings] = useState<any[]>([]);
-  const [selectedRoom, setSelectedRoom] = useState('All Rooms');
+  const [selectedRoom, setSelectedRoom] = useState('Pilih Ruangan');
 
   /* 
   ================================================================================
@@ -95,8 +95,8 @@ export default function Dashboard() {
   }, [readings]);
 
   const filteredReadings = useMemo(() => {
-    return selectedRoom === 'All Rooms' 
-      ? readings 
+    return selectedRoom === 'Pilih Ruangan' 
+      ? [] 
       : readings.filter(r => r.unit_id === selectedRoom);
   }, [readings, selectedRoom]);
 
@@ -112,6 +112,8 @@ export default function Dashboard() {
         : filteredReadings[filteredReadings.length - 1])
     : { temperature: 0, relative_humidity: 0, differential_pressure: 0, status: 'normal' };
 
+  const isRoomSelected = selectedRoom !== 'Pilih Ruangan';
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1">
@@ -122,33 +124,41 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard 
           title="Temperature" 
-          value={actualLatest.temperature.toFixed(1)} 
+          value={isRoomSelected ? actualLatest.temperature.toFixed(1) : '--'} 
           unit="°C" 
           icon={Thermometer} 
           trend="neutral"
-          status={actualLatest.status} 
+          status={isRoomSelected ? actualLatest.status : 'normal'} 
         />
         <MetricCard 
           title="Humidity" 
-          value={actualLatest.relative_humidity.toFixed(1)} 
+          value={isRoomSelected ? actualLatest.relative_humidity.toFixed(1) : '--'} 
           unit="%" 
           icon={Droplets} 
           trend="neutral"
-          status={actualLatest.status} 
+          status={isRoomSelected ? actualLatest.status : 'normal'} 
         />
         <MetricCard 
           title="Differential Pressure" 
-          value={actualLatest.differential_pressure.toFixed(1)} 
+          value={isRoomSelected ? actualLatest.differential_pressure.toFixed(1) : '--'} 
           unit="Pa" 
           icon={Wind} 
           trend="neutral"
-          status={actualLatest.status} 
+          status={isRoomSelected ? actualLatest.status : 'normal'} 
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <LiveChart data={filteredReadings} />
+          {!isRoomSelected ? (
+            <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full flex flex-col items-center justify-center text-slate-500">
+              <Filter className="w-12 h-12 mb-4 opacity-30" />
+              <p className="text-xl font-medium text-slate-400">Pilih Ruangan Dulu</p>
+              <p className="text-sm mt-2">Silakan pilih ruangan di filter untuk melihat grafik data.</p>
+            </div>
+          ) : (
+            <LiveChart data={filteredReadings} />
+          )}
         </div>
         <div>
           {/* Room Selector replacing AddReadingForm */}
@@ -168,7 +178,7 @@ export default function Dashboard() {
                 onChange={(e) => setSelectedRoom(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
               >
-                <option value="All Rooms">All Rooms</option>
+                <option value="Pilih Ruangan">-- Pilih Ruangan --</option>
                 {uniqueRooms.map(r => (
                   <option key={r as string} value={r as string}>{r as string}</option>
                 ))}
@@ -186,13 +196,21 @@ export default function Dashboard() {
       </div>
 
       {/* Adjust RecentReadings to use filtered data and pass as-is or reversed depending on chronological order */}
-      <RecentReadings 
-        readings={
-          filteredReadings.length > 0 && new Date(filteredReadings[0].timestamp).getTime() > new Date(filteredReadings[filteredReadings.length - 1].timestamp).getTime()
-            ? filteredReadings // already newest first
-            : [...filteredReadings].reverse() // needs reverse
-        } 
-      />
+      {!isRoomSelected ? (
+        <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl text-center text-slate-500 py-12">
+          <Filter className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-lg font-medium text-slate-400">Pilih Ruangan Dulu</p>
+          <p className="text-sm mt-1">Silakan pilih ruangan di filter untuk melihat histori sensor.</p>
+        </div>
+      ) : (
+        <RecentReadings 
+          readings={
+            filteredReadings.length > 0 && new Date(filteredReadings[0].timestamp).getTime() > new Date(filteredReadings[filteredReadings.length - 1].timestamp).getTime()
+              ? filteredReadings // already newest first
+              : [...filteredReadings].reverse() // needs reverse
+          } 
+        />
+      )}
     </div>
   );
 }

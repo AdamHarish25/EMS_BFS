@@ -32,9 +32,9 @@ export default function LiveChart({ data }: { data: DataPoint[] }) {
               itemStyle={{ color: '#f8fafc' }}
             />
             <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
-            <Line type="monotone" dataKey="temperature" name="Temp (°C)" stroke="#ef4444" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
-            <Line type="monotone" dataKey="relative_humidity" name="RH (%)" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
-            <Line type="monotone" dataKey="differential_pressure" name="DP (Pa)" stroke="#eab308" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="temperature" name="Temp (°C)" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="relative_humidity" name="RH (%)" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="differential_pressure" name="DP (Pa)" stroke="#eab308" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

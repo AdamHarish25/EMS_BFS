@@ -7,14 +7,19 @@ import DataTable from '@/components/data/DataTable';
 
 export default function DataManagementPage() {
   const [readings, setReadings] = useState<any[]>([]);
-  const [exclusions, setExclusions] = useState<any[]>([{
-    id: '1',
-    unit_id: 'Dispensing 1',
-    timestamp_start: '2026-05-11T10:00:00.000Z',
-    timestamp_end: '2026-05-11T12:00:00.000Z',
-    reason: 'Fumigasi rutin mingguan',
-    excluded_by: 'admin@base44.io'
-  }]);
+  const [exclusions, setExclusions] = useState<any[]>([]);
+
+  const fetchExclusions = async () => {
+    try {
+      const res = await fetch('http://10.165.40.127:1880/api/get-excluded');
+      if (!res.ok) throw new Error('Failed to fetch exclusions');
+      const data = await res.json();
+      const exclusionsArray = Array.isArray(data) ? data : (data.data ? data.data : [data]);
+      setExclusions(exclusionsArray);
+    } catch (error) {
+      console.error("Gagal sinkron data exclusions:", error);
+    }
+  };
 
   useEffect(() => {
     const getStatus = (temp: number, rh: number, dp: number) => {
@@ -60,19 +65,35 @@ export default function DataManagementPage() {
     };
 
     fetchData();
+    fetchExclusions();
 
     // Poll every 5 seconds for real-time reporting updates
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(() => {
+      fetchData();
+      fetchExclusions();
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
   const handleAddExclusion = (data: any) => {
-    setExclusions(prev => [data, ...prev]);
+    // Re-fetch exclusions from the API so it reflects what was saved
+    fetchExclusions();
   };
 
-  const handleDeleteExclusion = (id: string) => {
-    setExclusions(prev => prev.filter(e => e.id !== id));
+  const handleDeleteExclusion = async (id: string) => {
+    try {
+      // Sepenuhnya menggunakan API, tidak ada manipulasi array lokal
+      await fetch('http://10.165.40.127:1880/api/delete-exclusion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      // Tarik ulang dari API setelah dihapus
+      fetchExclusions();
+    } catch (error) {
+      console.error("Gagal menghapus exclusion:", error);
+    }
   };
 
   return (
