@@ -26,52 +26,90 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     return rooms.filter(Boolean).sort();
   }, [readings, exclusions]);
 
-  const isExcluded = (reading: any) => {
-    return exclusions.some(exc => {
-      if (exc.unit_id !== 'All Units' && exc.unit_id !== reading.unit_id) return false;
-      const readingTime = new Date(reading.timestamp).getTime();
-      const start = new Date(exc.timestamp_start).getTime();
-      const end = new Date(exc.timestamp_end).getTime();
-      return readingTime >= start && readingTime <= end;
-    });
-  };
+  const parsedExclusions = useMemo(() => {
+    return exclusions.map(exc => ({
+      ...exc,
+      startTime: new Date(exc.timestamp_start).getTime(),
+      endTime: new Date(exc.timestamp_end).getTime()
+    }));
+  }, [exclusions]);
 
   // 1. Filtering
-  const dateFilteredReadings = readings.filter(r => {
-    // Room Filter
-    if (selectedRoom === 'Pilih Ruangan') return false; // return empty if nothing selected
-    if (r.unit_id !== selectedRoom) return false;
+  const dateFilteredReadings = useMemo(() => {
+    const startObjTime = startDate ? new Date(startDate).getTime() : 0;
+    const endObjTime = endDate ? new Date(endDate).getTime() : Infinity;
 
-    // Date Filter
-    const time = new Date(r.timestamp).getTime();
-    
-    if (startDate) {
-      const start = new Date(startDate);
-      if (time < start.getTime()) return false;
-    }
-    
-    if (endDate) {
-      const end = new Date(endDate);
-      if (time > end.getTime()) return false;
-    }
-    
-    return true;
-  });
+    return readings.filter(r => {
+      // Room Filter
+      if (selectedRoom === 'Pilih Ruangan') return false;
+      if (r.unit_id !== selectedRoom) return false;
+
+      // Date Filter
+      const time = new Date(r.timestamp).getTime();
+      if (startDate && time < startObjTime) return false;
+      if (endDate && time > endObjTime) return false;
+      
+      return true;
+    });
+  }, [readings, selectedRoom, startDate, endDate]);
 
   // 2. Separate data based on exclusions
-  const validReadings = dateFilteredReadings.filter(r => !isExcluded(r));
-  const excludedReadings = dateFilteredReadings.filter(r => isExcluded(r));
+  const { validReadings, excludedReadings } = useMemo(() => {
+    const valid: any[] = [];
+    const excluded: any[] = [];
+
+    for (const r of dateFilteredReadings) {
+      const readingTime = new Date(r.timestamp).getTime();
+      let isExc = false;
+      
+      for (const exc of parsedExclusions) {
+        if (exc.unit_id !== 'All Units' && exc.unit_id !== r.unit_id) continue;
+        if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
+          isExc = true;
+          break;
+        }
+      }
+      
+      if (isExc) {
+        excluded.push(r);
+      } else {
+        valid.push(r);
+      }
+    }
+    return { validReadings: valid, excludedReadings: excluded };
+  }, [dateFilteredReadings, parsedExclusions]);
 
   // Determine which dataset is the "main" one for the summary
   const summaryData = reportType === 'Fumigasi' ? excludedReadings : validReadings;
 
   // Compute Min/Max for Summary Data
-  const minTemp = summaryData.length > 0 ? Math.min(...summaryData.map(r => r.temperature)) : 0;
-  const maxTemp = summaryData.length > 0 ? Math.max(...summaryData.map(r => r.temperature)) : 0;
-  const minRH = summaryData.length > 0 ? Math.min(...summaryData.map(r => r.relative_humidity)) : 0;
-  const maxRH = summaryData.length > 0 ? Math.max(...summaryData.map(r => r.relative_humidity)) : 0;
-  const minDP = summaryData.length > 0 ? Math.min(...summaryData.map(r => r.differential_pressure)) : 0;
-  const maxDP = summaryData.length > 0 ? Math.max(...summaryData.map(r => r.differential_pressure)) : 0;
+  const stats = useMemo(() => {
+    if (summaryData.length === 0) return { minTemp: 0, maxTemp: 0, minRH: 0, maxRH: 0, minDP: 0, maxDP: 0 };
+    
+    let minT = Infinity, maxT = -Infinity;
+    let minR = Infinity, maxR = -Infinity;
+    let minD = Infinity, maxD = -Infinity;
+
+    for (const r of summaryData) {
+      if (r.temperature < minT) minT = r.temperature;
+      if (r.temperature > maxT) maxT = r.temperature;
+      if (r.relative_humidity < minR) minR = r.relative_humidity;
+      if (r.relative_humidity > maxR) maxR = r.relative_humidity;
+      if (r.differential_pressure < minD) minD = r.differential_pressure;
+      if (r.differential_pressure > maxD) maxD = r.differential_pressure;
+    }
+    
+    return {
+      minTemp: minT === Infinity ? 0 : minT,
+      maxTemp: maxT === -Infinity ? 0 : maxT,
+      minRH: minR === Infinity ? 0 : minR,
+      maxRH: maxR === -Infinity ? 0 : maxR,
+      minDP: minD === Infinity ? 0 : minD,
+      maxDP: maxD === -Infinity ? 0 : maxD,
+    };
+  }, [summaryData]);
+  
+  const { minTemp, maxTemp, minRH, maxRH, minDP, maxDP } = stats;
 
   const handleGeneratePDF = async () => {
     setIsGenerating(true);

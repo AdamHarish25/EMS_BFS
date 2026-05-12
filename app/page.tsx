@@ -106,11 +106,20 @@ export default function Dashboard() {
     : { temperature: 0, relative_humidity: 0, differential_pressure: 0, status: 'normal' };
     
   // Fallback to last item if [0] is not the newest (e.g. if API is ASC)
-  const actualLatest = filteredReadings.length > 0 
-    ? (new Date(filteredReadings[0].timestamp).getTime() > new Date(filteredReadings[filteredReadings.length - 1].timestamp).getTime() 
-        ? filteredReadings[0] 
-        : filteredReadings[filteredReadings.length - 1])
-    : { temperature: 0, relative_humidity: 0, differential_pressure: 0, status: 'normal' };
+  const actualLatest = useMemo(() => {
+    if (filteredReadings.length === 0) return { temperature: 0, relative_humidity: 0, differential_pressure: 0, status: 'normal' };
+    const firstTime = new Date(filteredReadings[0].timestamp).getTime();
+    const lastTime = new Date(filteredReadings[filteredReadings.length - 1].timestamp).getTime();
+    return firstTime > lastTime ? filteredReadings[0] : filteredReadings[filteredReadings.length - 1];
+  }, [filteredReadings]);
+
+  const sortedReadings = useMemo(() => {
+    if (filteredReadings.length === 0) return [];
+    const firstTime = new Date(filteredReadings[0].timestamp).getTime();
+    const lastTime = new Date(filteredReadings[filteredReadings.length - 1].timestamp).getTime();
+    if (firstTime > lastTime) return filteredReadings;
+    return [...filteredReadings].reverse();
+  }, [filteredReadings]);
 
   const isRoomSelected = selectedRoom !== 'Pilih Ruangan';
 
@@ -203,13 +212,7 @@ export default function Dashboard() {
           <p className="text-sm mt-1">Silakan pilih ruangan di filter untuk melihat histori sensor.</p>
         </div>
       ) : (
-        <RecentReadings 
-          readings={
-            filteredReadings.length > 0 && new Date(filteredReadings[0].timestamp).getTime() > new Date(filteredReadings[filteredReadings.length - 1].timestamp).getTime()
-              ? filteredReadings // already newest first
-              : [...filteredReadings].reverse() // needs reverse
-          } 
-        />
+        <RecentReadings readings={sortedReadings} />
       )}
     </div>
   );

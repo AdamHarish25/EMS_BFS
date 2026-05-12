@@ -1,4 +1,5 @@
 "use client";
+import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format } from 'date-fns';
 
@@ -7,13 +8,16 @@ interface DataPoint {
   temperature: number;
   differential_pressure: number;
   relative_humidity: number;
+  jam_asli?: string;
 }
 
 export default function LiveChart({ data }: { data: DataPoint[] }) {
-  const formattedData = data.map(d => ({
-    ...d,
-    time: format(new Date(d.timestamp), 'HH:mm:ss')
-  }));
+  const formattedData = React.useMemo(() => {
+    return data.map(d => ({
+      ...d,
+      time: d.jam_asli ? d.jam_asli.split(' ')[1] : format(new Date(d.timestamp), 'HH:mm:ss')
+    }));
+  }, [data]);
 
   return (
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full">
