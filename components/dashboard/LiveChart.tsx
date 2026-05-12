@@ -1,5 +1,4 @@
 "use client";
-import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format } from 'date-fns';
 
@@ -8,16 +7,13 @@ interface DataPoint {
   temperature: number;
   differential_pressure: number;
   relative_humidity: number;
-  jam_asli?: string;
 }
 
 export default function LiveChart({ data }: { data: DataPoint[] }) {
-  const formattedData = React.useMemo(() => {
-    return data.map(d => ({
-      ...d,
-      time: d.jam_asli ? d.jam_asli.split(' ')[1] : format(new Date(d.timestamp), 'HH:mm:ss')
-    }));
-  }, [data]);
+  const formattedData = data.map(d => ({
+    ...d,
+    time: format(new Date(d.timestamp), 'HH:mm:ss')
+  }));
 
   return (
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full">
@@ -31,7 +27,7 @@ export default function LiveChart({ data }: { data: DataPoint[] }) {
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
             <XAxis dataKey="time" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
             <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip 
+            <Tooltip
               contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
               itemStyle={{ color: '#f8fafc' }}
             />

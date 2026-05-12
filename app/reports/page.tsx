@@ -9,13 +9,12 @@ export default function ReportsPage() {
 
   const fetchExclusions = async () => {
     try {
-      const res = await fetch('http://10.165.40.127:1880/api/get-excluded');
-      if (!res.ok) throw new Error('Failed to fetch exclusions');
+      const res = await fetch('/api/get-exclusions');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const exclusionsArray = Array.isArray(data) ? data : (data.data ? data.data : [data]);
-      setExclusions(exclusionsArray);
+      setExclusions(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Gagal sinkron data exclusions:", error);
+      console.error('Gagal sinkron data exclusions:', error);
     }
   };
 
@@ -28,33 +27,27 @@ export default function ReportsPage() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch('http://10.165.40.127:1880/api/ems-bfs');
-        if (!response.ok) throw new Error('Failed to fetch data');
+        const response = await fetch('/api/sensor-readings');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-
-        // Normalize data to array
-        const dataArray = Array.isArray(data) ? data : (data.data ? data.data : [data]);
-
+        const dataArray = Array.isArray(data) ? data : [];
         const formattedData = dataArray.map((item: any) => {
           const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
           let parsedTime = new Date();
-
           if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
             const tsStr = String(rawTime);
             parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
           } else {
             parsedTime = new Date(rawTime);
           }
-
           return {
             ...item,
             unit_id: typeof item.unit_id === 'string' ? item.unit_id.trim() : item.unit_id,
             timestamp: parsedTime.toISOString(),
             jam_asli: format(parsedTime, 'yyyy-MM-dd HH:mm:ssx'),
-            status: (typeof item.status === 'string' ? item.status.trim().toLowerCase() : item.status) || getStatus(item.temperature, item.relative_humidity, item.differential_pressure)
+            status: (typeof item.status === 'string' ? item.status.trim().toLowerCase() : item.status)
           };
         });
-
         setReadings(formattedData);
       } catch (error) {
         console.error('Error fetching report data:', error);

@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Mold', 'WIP'];
+const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Moulding', 'WIP'];
 
 export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (data: any) => void }) {
-  const [unitId, setUnitId] = useState('AC-01');
+  const [unitId, setUnitId] = useState(ROOMS[0]);
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -35,23 +35,16 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
     try {
       setIsSubmitting(true);
       
-      // --- TAMBAHAN DEBUGGING (SEBELUM FETCH) ---
-      console.log("[DEBUG] Memulai proses POST ke Node-RED...");
-      console.log("[DEBUG] Target URL: http://10.165.40.127:1880/api/exclude-data");
-      console.log("[DEBUG] Payload yang dikirim:", payload);
+      console.log('[DEBUG] POST /api/exclusions payload:', payload);
 
-      const res = await fetch('http://10.165.40.127:1880/api/exclude-data', {
+      const res = await fetch('/api/exclusions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      // --- TAMBAHAN DEBUGGING (SETELAH FETCH) ---
-      console.log("[DEBUG] Respons dari Node-RED diterima!");
-      console.log("[DEBUG] Status Code:", res.status, res.statusText);
-
       const data = await res.json();
-      console.log("[DEBUG] Data Balasan Node-RED:", data);
+      console.log('[DEBUG] Response /api/exclusions:', data);
 
       if (!res.ok) throw new Error(data.error || 'Gagal memindahkan data');
 
@@ -64,13 +57,10 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
       setEndTime('');
       setReason('');
     } catch (err: any) {
-      // --- TAMBAHAN DEBUGGING (JIKA ERROR) ---
-      console.error("[DEBUG ERROR] Request ke Node-RED GAGAL!");
-      console.error("[DEBUG ERROR] Detail:", err);
+      console.error('[DEBUG ERROR] /api/exclusions GAGAL:', err);
       
       if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
-        toast.error('NETWORK ERROR: Node-RED tidak bisa dijangkau. Cek CORS di Node-RED atau pastikan IP benar.');
-        console.error("[DEBUG ERROR] Ini biasanya terjadi karena masalah CORS (Cross-Origin Resource Sharing) yang belum diaktifkan di Node-RED, atau Node-RED dalam keadaan mati.");
+        toast.error('NETWORK ERROR: Tidak bisa terhubung ke server. Cek koneksi atau restart Next.js.');
       } else {
         toast.error(err.message || 'Terjadi kesalahan saat menghubungi database');
       }

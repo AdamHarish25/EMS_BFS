@@ -11,13 +11,12 @@ export default function DataManagementPage() {
 
   const fetchExclusions = async () => {
     try {
-      const res = await fetch('http://10.165.40.127:1880/api/get-excluded');
-      if (!res.ok) throw new Error('Failed to fetch exclusions');
+      const res = await fetch('/api/get-exclusions');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const exclusionsArray = Array.isArray(data) ? data : (data.data ? data.data : [data]);
-      setExclusions(exclusionsArray);
+      setExclusions(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Gagal sinkron data exclusions:", error);
+      console.error('Gagal sinkron data exclusions:', error);
     }
   };
 
@@ -30,24 +29,19 @@ export default function DataManagementPage() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch('http://10.165.40.127:1880/api/ems-bfs');
-        if (!response.ok) throw new Error('Failed to fetch data');
+        const response = await fetch('/api/sensor-readings');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-
-        // Normalize data to array
-        const dataArray = Array.isArray(data) ? data : (data.data ? data.data : [data]);
-
+        const dataArray = Array.isArray(data) ? data : [];
         const formattedData = dataArray.map((item: any, i: number) => {
           const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
           let parsedTime = new Date();
-
           if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
             const tsStr = String(rawTime);
             parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
           } else {
             parsedTime = new Date(rawTime);
           }
-
           return {
             ...item,
             id: item.id || `r-${i}`,
@@ -57,8 +51,7 @@ export default function DataManagementPage() {
             status: (typeof item.status === 'string' ? item.status.trim().toLowerCase() : item.status) || getStatus(item.temperature, item.relative_humidity, item.differential_pressure)
           };
         });
-
-        setReadings(formattedData.reverse()); // Keep newest first for data table
+        setReadings(formattedData.reverse());
       } catch (error) {
         console.error('Error fetching management data:', error);
       }
@@ -83,16 +76,14 @@ export default function DataManagementPage() {
 
   const handleDeleteExclusion = async (id: string) => {
     try {
-      // Sepenuhnya menggunakan API, tidak ada manipulasi array lokal
-      await fetch('http://10.165.40.127:1880/api/delete-exclusion', {
-        method: 'POST',
+      await fetch('/api/exclusions', {
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      // Tarik ulang dari API setelah dihapus
       fetchExclusions();
     } catch (error) {
-      console.error("Gagal menghapus exclusion:", error);
+      console.error('Gagal menghapus exclusion:', error);
     }
   };
 

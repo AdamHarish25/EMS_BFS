@@ -1,14 +1,18 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
-import { Thermometer, Droplets, Wind, Filter } from 'lucide-react';
+import { Thermometer, Droplets, Wind, Filter, WifiOff, Loader2 } from 'lucide-react';
 import MetricCard from '@/components/dashboard/MetricCard';
 import LiveChart from '@/components/dashboard/LiveChart';
 import RecentReadings from '@/components/dashboard/RecentReadings';
 
+
 export default function Dashboard() {
   const [readings, setReadings] = useState<any[]>([]);
+  const [exclusions, setExclusions] = useState<any[]>([]);
   const [selectedRoom, setSelectedRoom] = useState('Pilih Ruangan');
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   /* 
   ================================================================================
@@ -43,62 +47,87 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    let mounted = true;
     const fetchData = async () => {
       try {
-        const response = await fetch('http://10.165.40.127:1880/api/ems-bfs');
-        if (!response.ok) throw new Error('Failed to fetch data');
+        const response = await fetch('/api/sensor-readings');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        
-        // Normalize data to array
-        const dataArray = Array.isArray(data) ? data : (data.data ? data.data : [data]);
-        
+        const dataArray = Array.isArray(data) ? data : [];
         const formattedData = dataArray.map((item: any) => {
-          // Support 'jam_asli' from the new API query, or fallback to 'timestamp'
           const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
-          
           let parsedTime = new Date();
           if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
-             const tsStr = String(rawTime);
-             // If length <= 10, it's seconds, else milliseconds
-             parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
+            const tsStr = String(rawTime);
+            parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
           } else {
-             parsedTime = new Date(rawTime);
+            parsedTime = new Date(rawTime);
           }
-
           return {
             ...item,
             unit_id: typeof item.unit_id === 'string' ? item.unit_id.trim() : item.unit_id,
             timestamp: parsedTime.toISOString(),
-            // Keep jam_asli as formatted string if we want to display it
             jam_asli: format(parsedTime, 'yyyy-MM-dd HH:mm:ssx'),
             status: (typeof item.status === 'string' ? item.status.trim().toLowerCase() : item.status) || getStatus(item.temperature, item.relative_humidity, item.differential_pressure)
           };
         });
-        
-        setReadings(formattedData);
-      } catch (error) {
-        console.error('Error fetching sensor data:', error);
+        if (mounted) {
+          setReadings(formattedData);
+          setApiError(null);
+          console.log(`[DEBUG] Sensor: ${formattedData.length} rows`);
+        }
+      } catch (error: any) {
+        if (mounted) setApiError(`Gagal membaca tabel BFS_EMS_Sensor: ${error.message}`);
+        console.error('[DEBUG] Sensor fetch error:', error.message);
       }
     };
 
-    fetchData(); // Initial fetch
-    
-    // Poll every 5 seconds
-    const interval = setInterval(fetchData, 5000);
+    const fetchExclusions = async () => {
+      try {
+        const res = await fetch('/api/get-exclusions');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const arr = Array.isArray(data) ? data : [];
+        if (mounted) {
+          setExclusions(arr.map((e: any) => ({ ...e, unit_id: typeof e.unit_id === 'string' ? e.unit_id.trim() : e.unit_id })));
+          console.log(`[DEBUG] Exclusions: ${arr.length} rows`);
+        }
+      } catch (error: any) {
+        console.error('[DEBUG] Exclusions fetch error:', error.message);
+      }
+    };
 
-    return () => clearInterval(interval);
+    const fetchAll = async () => {
+      await Promise.all([fetchData(), fetchExclusions()]);
+      if (mounted) setIsLoading(false);
+    };
+
+    fetchAll();
+    const interval = setInterval(fetchAll, 5000);
+    return () => { mounted = false; clearInterval(interval); };
   }, []);
 
   const uniqueRooms = useMemo(() => {
-    const rooms = Array.from(new Set(readings.map(r => r.unit_id)));
-    return rooms.filter(Boolean).sort();
-  }, [readings]);
+    const allRooms = [
+      ...readings.map(r => r.unit_id),
+      ...exclusions.map(e => e.unit_id)
+    ];
+    const rooms = Array.from(new Set(allRooms)).filter(Boolean).sort() as string[];
+    console.log('[DEBUG] uniqueRooms:', rooms);
+    return rooms;
+  }, [readings, exclusions]);
+
+  // Gabungkan data dari kedua tabel: sensor (BFS_EMS_Sensor) + fumigasi (BFS_EMS_Fumigasi)
+  const allData = useMemo(() => {
+    const combined = [...readings, ...exclusions];
+    // Sort by timestamp descending (newest first)
+    return combined.sort((a, b) => new Date(b.timestamp ?? b.timestamp_start ?? 0).getTime() - new Date(a.timestamp ?? a.timestamp_start ?? 0).getTime());
+  }, [readings, exclusions]);
 
   const filteredReadings = useMemo(() => {
-    return selectedRoom === 'Pilih Ruangan' 
-      ? [] 
-      : readings.filter(r => r.unit_id === selectedRoom);
-  }, [readings, selectedRoom]);
+    if (selectedRoom === 'Pilih Ruangan') return [];
+    return allData.filter(r => r.unit_id === selectedRoom);
+  }, [allData, selectedRoom]);
 
   // Ensure latest is correctly derived from filteredReadings
   const latest = filteredReadings.length > 0 
@@ -125,6 +154,26 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+      {/* API Error Banner */}
+      {apiError && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400">
+          <WifiOff className="w-5 h-5 shrink-0" />
+          <div>
+            <p className="font-semibold text-sm">Koneksi Node-RED Gagal</p>
+            <p className="text-xs opacity-80">{apiError} — Pastikan Node-RED menyala dan CORS sudah diaktifkan.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Banner */}
+      {isLoading && !apiError && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400">
+          <Loader2 className="w-5 h-5 shrink-0 animate-spin" />
+          <p className="text-sm">Menghubungkan ke Node-RED dan memuat data sensor...</p>
+        </div>
+      )}
+
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold text-slate-50 tracking-tight">System Dashboard</h1>
         <p className="text-slate-400">Real-time Central AC monitoring and analytics.</p>
