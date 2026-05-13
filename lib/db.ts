@@ -1,11 +1,14 @@
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  user: 'appuser',         // sesuaikan
-  host: '10.165.41.45',    // IP PC server PostgreSQL
-  database: 'production',   // nama database
-  password: 'appuser',  // isi password asli di sini
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: Number(process.env.DB_PORT) || 5432,
+  connectionTimeoutMillis: 5000,
+  idleTimeoutMillis: 30000,
+  max: 10,
 });
 
 export const query = (text: string, params?: any[]) => pool.query(text, params);

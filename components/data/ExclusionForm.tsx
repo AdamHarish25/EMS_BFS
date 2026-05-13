@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-const NODE_RED = 'http://10.165.40.127:1880';
+const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.127:1880';
 const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Moulding', 'WIP'];
 
 export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAddExclusion: (data: any) => void, readings?: any[] }) {
