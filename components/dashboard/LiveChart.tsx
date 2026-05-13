@@ -10,10 +10,17 @@ interface DataPoint {
 }
 
 export default function LiveChart({ data }: { data: DataPoint[] }) {
-  const formattedData = data.map(d => ({
-    ...d,
-    time: format(new Date(d.timestamp), 'HH:mm:ss')
-  }));
+  const formattedData = data
+    .filter(d => {
+      // Hanya tampilkan baris yang punya timestamp valid dan nilai sensor
+      if (!d.timestamp) return false;
+      const t = new Date(d.timestamp);
+      return !isNaN(t.getTime()) && d.temperature != null;
+    })
+    .map(d => ({
+      ...d,
+      time: format(new Date(d.timestamp), 'HH:mm:ss')
+    }));
 
   return (
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full">

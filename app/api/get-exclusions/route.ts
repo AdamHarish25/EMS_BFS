@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+export const dynamic = 'force-dynamic'; // <--- INI PENTING: Matikan cache Next.js
+
 export async function GET() {
   try {
     const result = await pool.query(`

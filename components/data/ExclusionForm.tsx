@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
+const NODE_RED = 'http://10.165.40.127:1880';
 const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Moulding', 'WIP'];
 
-export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (data: any) => void }) {
+export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAddExclusion: (data: any) => void, readings?: any[] }) {
   const [unitId, setUnitId] = useState(ROOMS[0]);
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -23,32 +24,27 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
     }
 
     const payload = {
-      id: Math.random().toString(36).substring(7),
       unit_id: unitId,
-      timestamp_start: new Date(`${startDate}T${startTime}`).toISOString(),
-      timestamp_end: new Date(`${endDate}T${endTime}`).toISOString(),
+      timestamp_start: `${startDate} ${startTime}:00`,
+      timestamp_end:   `${endDate} ${endTime}:00`,
       reason,
       excluded_by: 'admin@base44.io',
-      created_date: new Date().toISOString()
     };
 
     try {
       setIsSubmitting(true);
-      
-      console.log('[DEBUG] POST /api/exclusions payload:', payload);
 
-      const res = await fetch('/api/exclusions', {
+      // Bypass Node-RED: Kita langsung panggil API Next.js kita sendiri karena INSERT diizinkan
+      const res = await fetch(`/api/add-exclusion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       const data = await res.json();
-      console.log('[DEBUG] Response /api/exclusions:', data);
-
       if (!res.ok) throw new Error(data.error || 'Gagal memindahkan data');
 
-      toast.success(data.message || 'Pengecualian data berhasil diproses');
+      toast.success(data.message || 'Data berhasil dipindahkan ke tabel Fumigasi');
       onAddExclusion(payload);
 
       setStartDate('');
@@ -57,10 +53,8 @@ export default function ExclusionForm({ onAddExclusion }: { onAddExclusion: (dat
       setEndTime('');
       setReason('');
     } catch (err: any) {
-      console.error('[DEBUG ERROR] /api/exclusions GAGAL:', err);
-      
       if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
-        toast.error('NETWORK ERROR: Tidak bisa terhubung ke server. Cek koneksi atau restart Next.js.');
+        toast.error('NETWORK ERROR: Node-RED tidak bisa dijangkau. Pastikan Node-RED menyala.');
       } else {
         toast.error(err.message || 'Terjadi kesalahan saat menghubungi database');
       }

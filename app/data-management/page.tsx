@@ -1,9 +1,12 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import ExclusionForm from '@/components/data/ExclusionForm';
 import ExclusionList from '@/components/data/ExclusionList';
 import DataTable from '@/components/data/DataTable';
+
+const NODE_RED = 'http://10.165.40.127:1880';
 
 export default function DataManagementPage() {
   const [readings, setReadings] = useState<any[]>([]);
@@ -74,16 +77,35 @@ export default function DataManagementPage() {
     fetchExclusions();
   };
 
-  const handleDeleteExclusion = async (id: string) => {
+  const handleDeleteExclusion = async (ids: string | string[]) => {
+    if (!ids || (Array.isArray(ids) && ids.length === 0)) {
+      toast.error('ID exclusion tidak valid, tidak bisa menghapus.');
+      return;
+    }
+    
+    const idArray = Array.isArray(ids) ? ids : [ids];
+
     try {
-      await fetch('/api/exclusions', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
+      console.log('[DELETE] Mengirim ke Node-RED, ids:', idArray);
+      
+      // Loop untuk menghapus setiap row Fumigasi satu per satu karena API Node-RED mungkin cuma support 1 ID
+      for (const id of idArray) {
+        const res = await fetch(`${NODE_RED}/api/delete-exclusion`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: Number(id) })
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `HTTP ${res.status}`);
+        }
+      }
+      
+      toast.success('Data exclusion berhasil dihapus.');
       fetchExclusions();
-    } catch (error) {
-      console.error('Gagal menghapus exclusion:', error);
+    } catch (error: any) {
+      console.error('[DELETE] Gagal:', error.message);
+      toast.error(`Gagal menghapus: ${error.message}`);
     }
   };
 
@@ -96,7 +118,7 @@ export default function DataManagementPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <ExclusionForm onAddExclusion={handleAddExclusion} />
+          <ExclusionForm onAddExclusion={handleAddExclusion} readings={readings} />
           <ExclusionList exclusions={exclusions} onDelete={handleDeleteExclusion} />
         </div>
         <div className="lg:col-span-2">

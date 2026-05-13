@@ -109,8 +109,8 @@ export default function Dashboard() {
 
   const uniqueRooms = useMemo(() => {
     const allRooms = [
-      ...readings.map(r => r.unit_id),
-      ...exclusions.map(e => e.unit_id)
+      ...readings.map(r => (r.unit_id || '').trim()),
+      ...exclusions.map(e => (e.unit_id || '').trim())
     ];
     const rooms = Array.from(new Set(allRooms)).filter(Boolean).sort() as string[];
     console.log('[DEBUG] uniqueRooms:', rooms);
@@ -124,9 +124,20 @@ export default function Dashboard() {
     return combined.sort((a, b) => new Date(b.timestamp ?? b.timestamp_start ?? 0).getTime() - new Date(a.timestamp ?? a.timestamp_start ?? 0).getTime());
   }, [readings, exclusions]);
 
+  // Untuk grafik & MetricCard: hanya data sensor nyata (punya timestamp + nilai sensor)
   const filteredReadings = useMemo(() => {
     if (selectedRoom === 'Pilih Ruangan') return [];
-    return allData.filter(r => r.unit_id === selectedRoom);
+    return readings.filter(r =>
+      (r.unit_id || '').trim() === selectedRoom &&
+      r.timestamp != null &&
+      r.temperature != null
+    );
+  }, [readings, selectedRoom]);
+
+  // Untuk RecentReadings table: gabungan sensor + exclusion marker
+  const filteredAll = useMemo(() => {
+    if (selectedRoom === 'Pilih Ruangan') return [];
+    return allData.filter(r => (r.unit_id || '').trim() === selectedRoom);
   }, [allData, selectedRoom]);
 
   // Ensure latest is correctly derived from filteredReadings
@@ -170,7 +181,7 @@ export default function Dashboard() {
       {isLoading && !apiError && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400">
           <Loader2 className="w-5 h-5 shrink-0 animate-spin" />
-          <p className="text-sm">Menghubungkan ke Node-RED dan memuat data sensor...</p>
+          <p className="text-sm">Memuat data sensor dari database...</p>
         </div>
       )}
 
@@ -182,7 +193,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard 
           title="Temperature" 
-          value={isRoomSelected ? actualLatest.temperature.toFixed(1) : '--'} 
+          value={isRoomSelected ? (actualLatest.temperature?.toFixed(1) ?? '--') : '--'} 
           unit="°C" 
           icon={Thermometer} 
           trend="neutral"
@@ -190,7 +201,7 @@ export default function Dashboard() {
         />
         <MetricCard 
           title="Humidity" 
-          value={isRoomSelected ? actualLatest.relative_humidity.toFixed(1) : '--'} 
+          value={isRoomSelected ? (actualLatest.relative_humidity?.toFixed(1) ?? '--') : '--'} 
           unit="%" 
           icon={Droplets} 
           trend="neutral"
@@ -198,7 +209,7 @@ export default function Dashboard() {
         />
         <MetricCard 
           title="Differential Pressure" 
-          value={isRoomSelected ? actualLatest.differential_pressure.toFixed(1) : '--'} 
+          value={isRoomSelected ? (actualLatest.differential_pressure?.toFixed(1) ?? '--') : '--'} 
           unit="Pa" 
           icon={Wind} 
           trend="neutral"
@@ -246,7 +257,7 @@ export default function Dashboard() {
             <div className="mt-6 pt-6 border-t border-slate-800">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-slate-400">Total Records Found</span>
-                <span className="font-medium text-slate-200">{filteredReadings.length}</span>
+                <span className="font-medium text-slate-200">{filteredAll.length}</span>
               </div>
             </div>
           </div>
@@ -261,7 +272,7 @@ export default function Dashboard() {
           <p className="text-sm mt-1">Silakan pilih ruangan di filter untuk melihat histori sensor.</p>
         </div>
       ) : (
-        <RecentReadings readings={sortedReadings} />
+        <RecentReadings readings={filteredAll} />
       )}
     </div>
   );

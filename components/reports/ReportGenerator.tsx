@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -10,17 +10,19 @@ import { format } from 'date-fns';
 export default function ReportGenerator({ readings, exclusions }: { readings: any[], exclusions: any[] }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
-  
+
   // Filter States
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reportType, setReportType] = useState('Semua Data'); // Semua Data, Fumigasi, Non-Fumigasi
   const [selectedRoom, setSelectedRoom] = useState('Pilih Ruangan');
-  
+  const [serverReadings, setServerReadings] = useState<any[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
   const uniqueRooms = React.useMemo(() => {
     const allRooms = [
-      ...readings.map(r => r.unit_id),
-      ...exclusions.map(e => e.unit_id)
+      ...readings.map(r => (r.unit_id || '').trim()),
+      ...exclusions.map(e => (e.unit_id || '').trim())
     ];
     const rooms = Array.from(new Set(allRooms));
     return rooms.filter(Boolean).sort();
@@ -34,24 +36,61 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     }));
   }, [exclusions]);
 
-  // 1. Filtering
-  const dateFilteredReadings = useMemo(() => {
-    const startObjTime = startDate ? new Date(startDate).getTime() : 0;
-    const endObjTime = endDate ? new Date(endDate).getTime() : Infinity;
+  // Fetch data dari server sesuai tanggal & ruangan
+  useEffect(() => {
+    let mounted = true;
+    if (selectedRoom === 'Pilih Ruangan') {
+      setServerReadings([]);
+      return;
+    }
 
-    return readings.filter(r => {
-      // Room Filter
-      if (selectedRoom === 'Pilih Ruangan') return false;
-      if (r.unit_id !== selectedRoom) return false;
+    const fetchReportData = async () => {
+      setIsLoadingData(true);
+      try {
+        const res = await fetch('/api/report-readings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            unit_id: selectedRoom,
+            start_date: startDate ? `${startDate.replace('T', ' ')}:00` : null,
+            end_date: endDate ? `${endDate.replace('T', ' ')}:00` : null
+          })
+        });
+        const data = await res.json();
+        if (mounted) {
+          // Format tanggal sama seperti di app/page.tsx
+          const formatted = (Array.isArray(data) ? data : []).map(item => {
+            const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
+            let parsedTime = new Date();
+            if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
+              const tsStr = String(rawTime);
+              parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
+            } else {
+              parsedTime = new Date(rawTime);
+            }
+            return {
+              ...item,
+              timestamp: parsedTime.toISOString(),
+            };
+          });
+          setServerReadings(formatted);
+        }
+      } catch (err) {
+        console.error('Failed to fetch report data:', err);
+      } finally {
+        if (mounted) setIsLoadingData(false);
+      }
+    };
 
-      // Date Filter
-      const time = new Date(r.timestamp).getTime();
-      if (startDate && time < startObjTime) return false;
-      if (endDate && time > endObjTime) return false;
-      
-      return true;
-    });
-  }, [readings, selectedRoom, startDate, endDate]);
+    // Kita kasih delay (debounce) sedikit biar kalau ngetik tanggal nggak spam API
+    const timer = setTimeout(() => fetchReportData(), 500);
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
+  }, [selectedRoom, startDate, endDate]);
+
+  const dateFilteredReadings = serverReadings;
 
   // 2. Separate data based on exclusions
   const { validReadings, excludedReadings } = useMemo(() => {
@@ -61,15 +100,15 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     for (const r of dateFilteredReadings) {
       const readingTime = new Date(r.timestamp).getTime();
       let isExc = false;
-      
+
       for (const exc of parsedExclusions) {
-        if (exc.unit_id !== 'All Units' && exc.unit_id !== r.unit_id) continue;
+        if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (r.unit_id || '').trim()) continue;
         if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
           isExc = true;
           break;
         }
       }
-      
+
       if (isExc) {
         excluded.push(r);
       } else {
@@ -85,7 +124,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   // Compute Min/Max for Summary Data
   const stats = useMemo(() => {
     if (summaryData.length === 0) return { minTemp: 0, maxTemp: 0, minRH: 0, maxRH: 0, minDP: 0, maxDP: 0 };
-    
+
     let minT = Infinity, maxT = -Infinity;
     let minR = Infinity, maxR = -Infinity;
     let minD = Infinity, maxD = -Infinity;
@@ -98,7 +137,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       if (r.differential_pressure < minD) minD = r.differential_pressure;
       if (r.differential_pressure > maxD) maxD = r.differential_pressure;
     }
-    
+
     return {
       minTemp: minT === Infinity ? 0 : minT,
       maxTemp: maxT === -Infinity ? 0 : maxT,
@@ -108,7 +147,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       maxDP: maxD === -Infinity ? 0 : maxD,
     };
   }, [summaryData]);
-  
+
   const { minTemp, maxTemp, minRH, maxRH, minDP, maxDP } = stats;
 
   const handleGeneratePDF = async () => {
@@ -116,19 +155,19 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
-      
+
       // HEADER
       pdf.setFontSize(20);
       pdf.setTextColor(40);
       pdf.text('Central AC Monitoring Report', 14, 22);
-      
+
       pdf.setFontSize(10);
       pdf.setTextColor(100);
       pdf.text(`Generated on: ${format(new Date(), 'PPP p')}`, 14, 28);
       pdf.text(`Report Type: ${reportType}`, 14, 34);
       pdf.text(`Ruangan: ${selectedRoom}`, 14, 40);
-      
-      const dateRangeText = startDate || endDate 
+
+      const dateRangeText = startDate || endDate
         ? `Period: ${startDate ? format(new Date(startDate), 'PPP p') : 'Start'} to ${endDate ? format(new Date(endDate), 'PPP p') : 'Now'}`
         : 'Period: All Time';
       pdf.text(dateRangeText, 14, 46);
@@ -142,7 +181,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pageWidth - 28;
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
+
         pdf.addImage(imgData, 'PNG', 14, finalY, pdfWidth, pdfHeight);
         finalY = finalY + pdfHeight + 15;
       }
@@ -150,7 +189,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       // VALID DATA TABLE (Only for 'Semua Data' or 'Non-Fumigasi')
       if (reportType !== 'Fumigasi' && validReadings.length > 0) {
         if (finalY > 250) { pdf.addPage(); finalY = 20; }
-        
+
         pdf.setFontSize(14);
         pdf.setTextColor(40);
         pdf.text('Valid Sensor Readings (Non-Fumigasi)', 14, finalY);
@@ -260,7 +299,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         pdf.text(line, 14, finalY);
         finalY += 5;
       });
-      
+
       pdf.save(`AC-Report-${format(new Date(), 'yyyyMMdd-HHmm')}.pdf`);
     } catch (error) {
       console.error('Failed to generate PDF', error);
@@ -271,18 +310,18 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
   return (
     <div className="space-y-6">
-      
+
       {/* FILTER CONTROLS */}
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2 mb-6">
           <Filter className="w-5 h-5 text-blue-500" />
           Filter Configuration
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">Ruangan (Unit)</label>
-            <select 
+            <select
               value={selectedRoom}
               onChange={(e) => setSelectedRoom(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -297,8 +336,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             <label className="block text-sm font-medium text-slate-400 mb-2">Start Date & Time</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-              <input 
-                type="datetime-local" 
+              <input
+                type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -309,8 +348,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             <label className="block text-sm font-medium text-slate-400 mb-2">End Date & Time</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-              <input 
-                type="datetime-local" 
+              <input
+                type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -319,7 +358,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">Report Data Type</label>
-            <select 
+            <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
@@ -340,13 +379,13 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           </h2>
           <p className="text-slate-400 mt-1 text-sm">Download the comprehensive report based on your selected filters.</p>
         </div>
-        <button 
+        <button
           onClick={handleGeneratePDF}
           disabled={isGenerating || dateFilteredReadings.length === 0}
           className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] whitespace-nowrap"
         >
           {isGenerating ? (
-             <span className="animate-pulse">Rendering PDF...</span>
+            <span className="animate-pulse">Rendering PDF...</span>
           ) : (
             <>
               <Download className="w-5 h-5" />
@@ -373,10 +412,10 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
-          Visual Preview 
+          Visual Preview
           <span className="text-xs font-normal text-slate-500 bg-slate-950 px-2 py-1 rounded-md">Will be included in PDF</span>
         </h3>
-        
+
         {/* We wrap it in a ref so html2canvas can capture it */}
         <div ref={chartRef} className="p-6 bg-[#0f172a] rounded-xl border border-slate-800">
           {selectedRoom === 'Pilih Ruangan' ? (
