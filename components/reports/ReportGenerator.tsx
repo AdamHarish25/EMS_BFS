@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { Download, FileText, FileBarChart, Calendar, Filter } from 'lucide-react';
 import ReportChart from './ReportChart';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 export default function ReportGenerator({ readings, exclusions }: { readings: any[], exclusions: any[] }) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -36,59 +37,54 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     }));
   }, [exclusions]);
 
-  // Fetch data dari server sesuai tanggal & ruangan
-  useEffect(() => {
-    let mounted = true;
+  // Fetch HANYA ketika user klik tombol "Tarik Data" - bukan auto-fetch
+  const fetchReportData = async () => {
+    if (!startDate || !endDate) {
+      toast.error('Pilih Start Date & End Date terlebih dahulu sebelum menarik data!');
+      return;
+    }
     if (selectedRoom === 'Pilih Ruangan') {
-      setServerReadings([]);
+      toast.error('Pilih Ruangan terlebih dahulu!');
       return;
     }
 
-    const fetchReportData = async () => {
-      setIsLoadingData(true);
-      try {
-        const res = await fetch('/api/report-readings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            unit_id: selectedRoom,
-            start_date: startDate ? `${startDate.replace('T', ' ')}:00` : null,
-            end_date: endDate ? `${endDate.replace('T', ' ')}:00` : null
-          })
-        });
-        const data = await res.json();
-        if (mounted) {
-          // Format tanggal sama seperti di app/page.tsx
-          const formatted = (Array.isArray(data) ? data : []).map(item => {
-            const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
-            let parsedTime = new Date();
-            if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
-              const tsStr = String(rawTime);
-              parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
-            } else {
-              parsedTime = new Date(rawTime);
-            }
-            return {
-              ...item,
-              timestamp: parsedTime.toISOString(),
-            };
-          });
-          setServerReadings(formatted);
+    setIsLoadingData(true);
+    setServerReadings([]);
+    try {
+      const res = await fetch('/api/report-readings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unit_id: selectedRoom,
+          start_date: `${startDate.replace('T', ' ')}:00`,
+          end_date: `${endDate.replace('T', ' ')}:00`
+        })
+      });
+      const data = await res.json();
+      const formatted = (Array.isArray(data) ? data : []).map(item => {
+        const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
+        let parsedTime = new Date();
+        if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
+          const tsStr = String(rawTime);
+          parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
+        } else {
+          parsedTime = new Date(rawTime);
         }
-      } catch (err) {
-        console.error('Failed to fetch report data:', err);
-      } finally {
-        if (mounted) setIsLoadingData(false);
+        return { ...item, timestamp: parsedTime.toISOString() };
+      });
+      setServerReadings(formatted);
+      if (formatted.length === 0) {
+        toast.error('Tidak ada data ditemukan pada rentang waktu yang dipilih.');
+      } else {
+        toast.success(`${formatted.length} data berhasil ditarik!`);
       }
-    };
-
-    // Kita kasih delay (debounce) sedikit biar kalau ngetik tanggal nggak spam API
-    const timer = setTimeout(() => fetchReportData(), 500);
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-    };
-  }, [selectedRoom, startDate, endDate]);
+    } catch (err) {
+      console.error('Failed to fetch report data:', err);
+      toast.error('Gagal mengambil data dari server.');
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
 
   const dateFilteredReadings = serverReadings;
 
@@ -369,6 +365,27 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </select>
           </div>
         </div>
+
+        {/* Tombol Tarik Data */}
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            onClick={fetchReportData}
+            disabled={isLoadingData}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
+          >
+            {isLoadingData ? (
+              <span className="animate-pulse">Mengambil Data...</span>
+            ) : (
+              <>
+                <span>🔍</span>
+                Tarik Data
+              </>
+            )}
+          </button>
+          {serverReadings.length > 0 && (
+            <span className="text-xs text-emerald-400 font-medium">{serverReadings.length} data berhasil dimuat</span>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl gap-4">
@@ -424,8 +441,14 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               <p className="text-xl font-medium text-slate-400">Pilih Ruangan Dulu</p>
               <p className="text-sm mt-2">Silakan pilih ruangan di filter untuk melihat preview grafik.</p>
             </div>
+          ) : dateFilteredReadings.length === 0 ? (
+            <div className="w-full h-[400px] flex flex-col items-center justify-center text-slate-500">
+              <FileText className="w-12 h-12 mb-4 opacity-30" />
+              <p className="text-xl font-medium text-slate-400">Belum Ada Data</p>
+              <p className="text-sm mt-2">Isi filter lalu klik &ldquo;🔍 Tarik Data&rdquo; untuk memuat grafik.</p>
+            </div>
           ) : (
-            <ReportChart readings={dateFilteredReadings} exclusions={exclusions} />
+            <ReportChart readings={dateFilteredReadings} exclusions={parsedExclusions} />
           )}
         </div>
       </div>

@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { ShieldAlert } from 'lucide-react';
 
 export default function DataTable({ readings, exclusions }: { readings: any[], exclusions: any[] }) {
-  
+
   const isExcluded = (reading: any) => {
     return exclusions.some(exc => {
       if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (reading.unit_id || '').trim()) return false;
@@ -59,9 +59,9 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
                     )}
                     {!excluded && (
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold border tracking-wider
-                        ${r.status === 'normal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
-                          r.status === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
-                          'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                        ${r.status === 'normal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          r.status === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                            'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
                         {r.status}
                       </span>
                     )}
