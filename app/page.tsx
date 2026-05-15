@@ -170,7 +170,7 @@ export default function Dashboard() {
     };
 
     fetchLatest();
-    interval = setInterval(fetchLatest, 300000); // 5 menit
+    interval = setInterval(fetchLatest, 360000); // 6 menit
 
     return () => clearInterval(interval);
   }, [selectedRoom]);
