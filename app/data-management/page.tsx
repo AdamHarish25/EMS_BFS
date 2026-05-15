@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.127:1880';
 
 const ROOM_LIST = [
-  'Dispensing 1', 'Dispensing 2', 'Mixing', 'Transfer Plastic Moulding', 'WIP', 'Labelling'
+  'Dispensing 1', 'Dispensing 2', 'Mixing', 'Transfer Plastic Moulding', 'WIP', 'Filling'
 ];
 
 export default function DataManagementPage() {

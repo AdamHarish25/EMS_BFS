@@ -9,7 +9,7 @@ import RecentReadings from '@/components/dashboard/RecentReadings';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const ROOM_LIST = [
-  'Dispensing 1', 'Dispensing 2', 'Mixing', 'Transfer Plastic Moulding', 'WIP', 'Labelling'
+  'Dispensing 1', 'Dispensing 2', 'Mixing', 'Transfer Plastic Moulding', 'WIP', 'Filling'
 ];
 
 export default function Dashboard() {
