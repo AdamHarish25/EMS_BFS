@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Thermometer, Droplets, Wind, Filter, Loader2, Search } from 'lucide-react';
@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [realtimeData, setRealtimeData] = useState<any>(null);
 
   const getStatus = (temp: number, rh: number, dp: number) => {
     if (temp > 25 || rh > 60 || dp <= 20) return 'critical';
@@ -82,7 +83,7 @@ export default function Dashboard() {
 
       const sensorText = await sensorRes.text();
       const exclusionText = await exclusionRes.text();
-      
+
       let sensorData, exclusionData;
       try {
         sensorData = JSON.parse(sensorText);
@@ -142,6 +143,40 @@ export default function Dashboard() {
   }, [filteredReadings]);
 
   const isRoomSelected = selectedRoom !== 'Pilih Ruangan';
+
+  // Poll latest reading for real-time MetricCards
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    const fetchLatest = async () => {
+      if (!isRoomSelected) {
+        setRealtimeData(null);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(selectedRoom)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            // Recompute status in case it's not saved or needs client-side verification
+            const status = getStatus(data.temperature, data.relative_humidity, data.differential_pressure);
+            setRealtimeData({ ...data, status });
+          } else {
+            setRealtimeData(null);
+          }
+        }
+      } catch (err) {
+        console.error("Gagal menarik data realtime:", err);
+      }
+    };
+
+    fetchLatest();
+    interval = setInterval(fetchLatest, 3000);
+
+    return () => clearInterval(interval);
+  }, [selectedRoom]);
+
+  // Use realtime data if available, otherwise fallback to the latest fetched data (or '--')
+  const displayData = isRoomSelected && realtimeData ? realtimeData : (hasFetched ? actualLatest : null);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -207,27 +242,27 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard
           title={t("Temperature")}
-          value={hasFetched ? (actualLatest.temperature?.toFixed(1) ?? '--') : '--'}
+          value={displayData?.temperature ? displayData.temperature.toFixed(1) : '--'}
           unit="°C"
           icon={Thermometer}
           trend="neutral"
-          status={hasFetched ? actualLatest.status : 'normal'}
+          status={displayData?.status || 'normal'}
         />
         <MetricCard
           title={t("Humidity")}
-          value={hasFetched ? (actualLatest.relative_humidity?.toFixed(1) ?? '--') : '--'}
+          value={displayData?.relative_humidity ? displayData.relative_humidity.toFixed(1) : '--'}
           unit="%"
           icon={Droplets}
           trend="neutral"
-          status={hasFetched ? actualLatest.status : 'normal'}
+          status={displayData?.status || 'normal'}
         />
         <MetricCard
           title={t("Differential Pressure")}
-          value={hasFetched ? (actualLatest.differential_pressure?.toFixed(1) ?? '--') : '--'}
+          value={displayData?.differential_pressure ? displayData.differential_pressure.toFixed(1) : '--'}
           unit="Pa"
           icon={Wind}
           trend="neutral"
-          status={hasFetched ? actualLatest.status : 'normal'}
+          status={displayData?.status || 'normal'}
         />
       </div>
 
