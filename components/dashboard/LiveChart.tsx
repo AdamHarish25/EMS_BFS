@@ -1,6 +1,7 @@
 "use client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DataPoint {
   timestamp: string;
@@ -10,6 +11,7 @@ interface DataPoint {
 }
 
 export default function LiveChart({ data }: { data: DataPoint[] }) {
+  const { t } = useLanguage();
   const formattedData = data
     .filter(d => {
       // Hanya tampilkan baris yang punya timestamp valid dan nilai sensor
@@ -26,7 +28,7 @@ export default function LiveChart({ data }: { data: DataPoint[] }) {
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full">
       <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-        Tren Sensor Langsung
+        {t("Live Trends")}
       </h3>
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -39,9 +41,9 @@ export default function LiveChart({ data }: { data: DataPoint[] }) {
               itemStyle={{ color: '#f8fafc' }}
             />
             <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
-            <Line isAnimationActive={false} type="monotone" dataKey="temperature" name="Suhu (°C)" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            <Line isAnimationActive={false} type="monotone" dataKey="relative_humidity" name="Kelembapan (%)" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            <Line isAnimationActive={false} type="monotone" dataKey="differential_pressure" name="Tekanan (Pa)" stroke="#eab308" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="temperature" name={t("Temp")} stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="relative_humidity" name={t("RH")} stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="differential_pressure" name={t("DP")} stroke="#eab308" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

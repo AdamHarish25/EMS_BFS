@@ -7,10 +7,12 @@ import { Download, FileText, FileBarChart, Calendar, Filter } from 'lucide-react
 import ReportChart from './ReportChart';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ReportGenerator({ readings, exclusions }: { readings: any[], exclusions: any[] }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   // Filter States
   const [startDate, setStartDate] = useState('');
@@ -311,25 +313,25 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2 mb-6">
           <Filter className="w-5 h-5 text-blue-500" />
-          Konfigurasi Filter
+          {t("Filter Config")}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Ruangan (Unit)</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">{t("Room")}</label>
             <select
               value={selectedRoom}
               onChange={(e) => setSelectedRoom(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
-              <option value="Pilih Ruangan">-- Pilih Ruangan --</option>
+              <option value="Pilih Ruangan">{t("Select Room 2")}</option>
               {uniqueRooms.map(r => (
                 <option key={r as string} value={r as string}>{r as string}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Tanggal & Waktu Mulai</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">{t("Start Date")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input
@@ -341,7 +343,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Tanggal & Waktu Selesai</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">{t("End Date")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input
@@ -353,15 +355,15 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Tipe Data Laporan</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">{t("Report Type")}</label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
-              <option value="Semua Data">Semua Data</option>
-              <option value="Non-Fumigasi">Non-Fumigasi (Valid Only)</option>
-              <option value="Fumigasi">Fumigasi (Excluded Only)</option>
+              <option value="Semua Data">{t("All Data")}</option>
+              <option value="Non-Fumigasi">{t("Valid Only")}</option>
+              <option value="Fumigasi">{t("Excluded Only")}</option>
             </select>
           </div>
         </div>
@@ -374,11 +376,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
           >
             {isLoadingData ? (
-              <span className="animate-pulse">Mengambil Data...</span>
+              <span className="animate-pulse">{t("Fetching Data")}</span>
             ) : (
               <>
                 <span>🔍</span>
-                Tarik Data
+                {t("Pull Data")}
               </>
             )}
           </button>
@@ -392,9 +394,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         <div>
           <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
             <FileBarChart className="w-6 h-6 text-emerald-500" />
-            Ekspor PDF
+            {t("PDF Export")}
           </h2>
-          <p className="text-slate-400 mt-1 text-sm">Unduh laporan komprehensif berdasarkan filter yang Anda pilih.</p>
+          <p className="text-slate-400 mt-1 text-sm">{t("Download Report Desc")}</p>
         </div>
         <button
           onClick={handleGeneratePDF}
@@ -402,11 +404,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] whitespace-nowrap"
         >
           {isGenerating ? (
-            <span className="animate-pulse">Membuat PDF...</span>
+            <span className="animate-pulse">{t("Rendering PDF")}</span>
           ) : (
             <>
               <Download className="w-5 h-5" />
-              Unduh Laporan
+              {t("Download")}
             </>
           )}
         </button>
@@ -414,23 +416,23 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-md">
-          <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">Data Disaring</p>
+          <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">{t("Filtered Records")}</p>
           <p className="text-4xl font-bold text-slate-100 mt-2">{dateFilteredReadings.length}</p>
         </div>
         <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Fumigasi' ? 'bg-slate-900/50 border-emerald-900/20 opacity-50' : 'bg-slate-900 border-emerald-900/50'}`}>
-          <p className="text-sm font-medium text-emerald-500 uppercase tracking-wider">Data Valid</p>
+          <p className="text-sm font-medium text-emerald-500 uppercase tracking-wider">{t("Valid Data")}</p>
           <p className="text-4xl font-bold text-emerald-400 mt-2">{validReadings.length}</p>
         </div>
         <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Non-Fumigasi' ? 'bg-slate-900/50 border-rose-900/20 opacity-50' : 'bg-slate-900 border-rose-900/50'}`}>
-          <p className="text-sm font-medium text-rose-500 uppercase tracking-wider">Fumigasi / Dikecualikan</p>
+          <p className="text-sm font-medium text-rose-500 uppercase tracking-wider">{t("Excluded Fumigasi")}</p>
           <p className="text-4xl font-bold text-rose-400 mt-2">{excludedReadings.length}</p>
         </div>
       </div>
 
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
-          Pratinjau Visual
-          <span className="text-xs font-normal text-slate-500 bg-slate-950 px-2 py-1 rounded-md">Akan disertakan di PDF</span>
+          {t("Visual Preview")}
+          <span className="text-xs font-normal text-slate-500 bg-slate-950 px-2 py-1 rounded-md">{t("Included in PDF")}</span>
         </h3>
 
         {/* We wrap it in a ref so html2canvas can capture it */}
@@ -438,14 +440,14 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           {selectedRoom === 'Pilih Ruangan' ? (
             <div className="w-full h-[400px] flex flex-col items-center justify-center text-slate-500">
               <Filter className="w-12 h-12 mb-4 opacity-30" />
-              <p className="text-xl font-medium text-slate-400">Pilih Ruangan Dulu</p>
-              <p className="text-sm mt-2">Silakan pilih ruangan di filter untuk melihat preview grafik.</p>
+              <p className="text-xl font-medium text-slate-400">{t("Select Room First")}</p>
+              <p className="text-sm mt-2">{t("Choose Room PDF")}</p>
             </div>
           ) : dateFilteredReadings.length === 0 ? (
             <div className="w-full h-[400px] flex flex-col items-center justify-center text-slate-500">
               <FileText className="w-12 h-12 mb-4 opacity-30" />
-              <p className="text-xl font-medium text-slate-400">Belum Ada Data</p>
-              <p className="text-sm mt-2">Isi filter lalu klik &ldquo;🔍 Tarik Data&rdquo; untuk memuat grafik.</p>
+              <p className="text-xl font-medium text-slate-400">{t("No Data")}</p>
+              <p className="text-sm mt-2">{t("Fill Filter PDF")}</p>
             </div>
           ) : (
             <ReportChart readings={dateFilteredReadings} exclusions={parsedExclusions} />

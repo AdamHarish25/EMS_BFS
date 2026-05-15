@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.127:1880';
 const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Moulding', 'WIP'];
 
 export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAddExclusion: (data: any) => void, readings?: any[] }) {
+  const { t } = useLanguage();
   const [unitId, setUnitId] = useState(ROOMS[0]);
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -67,11 +69,11 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
       <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
         <AlertCircle className="w-5 h-5 text-rose-500" />
-        Tambah Pengecualian Data
+        {t("Add Exclusion")}
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">Ruangan</label>
+          <label className="block text-sm font-medium text-slate-400 mb-1">{t("Room")}</label>
           <select
             value={unitId}
             onChange={(e) => setUnitId(e.target.value)}
@@ -83,9 +85,9 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1">Periode Mulai</div>
+          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1">{t("Start Period")}</div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Tanggal</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">{t("Date")}</label>
             <input
               type="date"
               value={startDate}
@@ -103,9 +105,9 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             />
           </div>
 
-          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1 mt-2">Periode Selesai</div>
+          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1 mt-2">{t("End Period")}</div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Tanggal</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">{t("Date")}</label>
             <input
               type="date"
               value={endDate}
@@ -124,13 +126,13 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">Alasan Pengecualian</label>
+          <label className="block text-sm font-medium text-slate-400 mb-1">{t("Reason")}</label>
           <textarea
             rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
-            placeholder="contoh: Kalibrasi sensor, Maintenance..."
+            placeholder={t("Reason Placeholder")}
           />
         </div>
         <button
@@ -138,7 +140,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
           disabled={isSubmitting}
           className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-medium py-2.5 rounded-xl transition-colors shadow-[0_0_15px_rgba(244,63,94,0.3)]"
         >
-          {isSubmitting ? 'Memproses...' : 'Kecualikan Data & Simpan ke DB'}
+          {isSubmitting ? t("Loading") : t("Exclude")}
         </button>
       </form>
     </div>

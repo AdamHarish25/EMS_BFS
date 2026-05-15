@@ -1,19 +1,21 @@
 import { format } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function RecentReadings({ readings }: { readings: any[] }) {
+  const { t } = useLanguage();
   return (
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 w-full overflow-hidden">
-      <h3 className="text-lg font-medium text-slate-200 mb-6">Pembacaan Terbaru</h3>
+      <h3 className="text-lg font-medium text-slate-200 mb-6">{t("Recent Readings")}</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-400">
           <thead className="text-xs uppercase bg-slate-800/50 text-slate-300">
             <tr>
-              <th className="px-4 py-3 rounded-tl-lg">Waktu</th>
-              <th className="px-4 py-3">Ruangan</th>
-              <th className="px-4 py-3">Suhu (°C)</th>
-              <th className="px-4 py-3">Kelembapan (%)</th>
-              <th className="px-4 py-3">Tekanan (Pa)</th>
-              <th className="px-4 py-3 rounded-tr-lg">Status</th>
+              <th className="px-4 py-3 rounded-tl-lg">{t("Time")}</th>
+              <th className="px-4 py-3">{t("Unit")}</th>
+              <th className="px-4 py-3">{t("Temp")}</th>
+              <th className="px-4 py-3">{t("RH")}</th>
+              <th className="px-4 py-3">{t("DP")}</th>
+              <th className="px-4 py-3 rounded-tr-lg">{t("Status")}</th>
             </tr>
           </thead>
           <tbody>
@@ -40,7 +42,7 @@ export default function RecentReadings({ readings }: { readings: any[] }) {
           </tbody>
         </table>
         {readings.length === 0 && (
-          <div className="text-center py-8 text-slate-500">Tidak ada pembacaan terbaru</div>
+          <div className="text-center py-8 text-slate-500">{t("No Recent")}</div>
         )}
       </div>
     </div>

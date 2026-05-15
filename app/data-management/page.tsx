@@ -6,6 +6,7 @@ import { Loader2, Search } from 'lucide-react';
 import ExclusionForm from '@/components/data/ExclusionForm';
 import ExclusionList from '@/components/data/ExclusionList';
 import DataTable from '@/components/data/DataTable';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.127:1880';
 
@@ -16,6 +17,7 @@ const ROOM_LIST = [
 export default function DataManagementPage() {
   const [readings, setReadings] = useState<any[]>([]);
   const [exclusions, setExclusions] = useState<any[]>([]);
+  const { t } = useLanguage();
   const [selectedRoom, setSelectedRoom] = useState('Pilih Ruangan');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -41,11 +43,11 @@ export default function DataManagementPage() {
 
   const handleFetchData = async () => {
     if (selectedRoom === 'Pilih Ruangan') {
-      toast.error('Pilih Ruangan terlebih dahulu!');
+      toast.error(t("Select Room First"));
       return;
     }
     if (!startDate || !endDate) {
-      toast.error('Pilih Start Date & End Date terlebih dahulu!');
+      toast.error(t("Select Dates First"));
       return;
     }
 
@@ -91,9 +93,9 @@ export default function DataManagementPage() {
       setHasFetched(true);
 
       if (formatted.length === 0) {
-        toast.error('Tidak ada data ditemukan pada rentang waktu ini.');
+        toast.error(t("No Data Found"));
       } else {
-        toast.success(`${formatted.length} data berhasil dimuat!`);
+        toast.success(`${formatted.length} ${t("Data Loaded")}`);
       }
     } catch (error: any) {
       toast.error(`Gagal mengambil data: ${error.message}`);
@@ -136,8 +138,8 @@ export default function DataManagementPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">Manajemen Data</h1>
-        <p className="text-slate-400">Kelola pengecualian data dan lihat telemetri sensor mentah.</p>
+        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">{t("Data Management")}</h1>
+        <p className="text-slate-400">{t("Manage Data")}</p>
       </div>
 
       {/* FILTER PANEL */}
@@ -145,18 +147,18 @@ export default function DataManagementPage() {
         <h3 className="text-base font-semibold text-slate-200 mb-4">🔍 Filter Data Sensor</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Ruangan (Unit)</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">{t("Room")}</label>
             <select
               value={selectedRoom}
               onChange={(e) => { setSelectedRoom(e.target.value); setHasFetched(false); }}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
             >
-              <option value="Pilih Ruangan">-- Pilih Ruangan --</option>
+              <option value="Pilih Ruangan">{t("Select Room 2")}</option>
               {ROOM_LIST.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tanggal & Waktu Mulai</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">{t("Start Date")}</label>
             <input
               type="datetime-local"
               value={startDate}
@@ -165,7 +167,7 @@ export default function DataManagementPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tanggal & Waktu Selesai</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">{t("End Date")}</label>
             <input
               type="datetime-local"
               value={endDate}
@@ -180,7 +182,7 @@ export default function DataManagementPage() {
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-medium transition-all text-sm"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              {isLoading ? 'Memuat...' : 'Tampilkan Data'}
+              {isLoading ? t("Loading") : t("Show Data")}
             </button>
           </div>
         </div>

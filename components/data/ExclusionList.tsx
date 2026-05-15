@@ -1,12 +1,14 @@
 "use client";
 import { Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ExclusionList({ exclusions, onDelete }: { exclusions: any[], onDelete: (id: string | string[]) => void }) {
+  const { t } = useLanguage();
   return (
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
       <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-        <h3 className="font-medium text-slate-200">Pengecualian Aktif</h3>
+        <h3 className="font-medium text-slate-200">{t("Active Exclusions")}</h3>
         <span className="text-xs font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
           {Array.from(new Set(exclusions.map(e => `${e.unit_id}-${e.timestamp_start}-${e.timestamp_end}`))).length} TOTAL
         </span>
@@ -14,7 +16,7 @@ export default function ExclusionList({ exclusions, onDelete }: { exclusions: an
       
       {exclusions.length === 0 ? (
         <div className="p-8 text-center text-slate-500 text-sm">
-          Tidak ada pengecualian data aktif
+          {t("No Active")}
         </div>
       ) : (
         <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
@@ -41,7 +43,7 @@ export default function ExclusionList({ exclusions, onDelete }: { exclusions: an
                 <button 
                   onClick={() => onDelete(excId)}
                   className="text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all p-2"
-                  title="Hapus Pengecualian"
+                  title={t("Remove Exclusion")}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -51,7 +53,7 @@ export default function ExclusionList({ exclusions, onDelete }: { exclusions: an
                 <div className="w-4 h-4 rounded-full bg-slate-800 flex items-center justify-center text-[8px] text-slate-400">
                   {exc.excluded_by?.charAt(0).toUpperCase() ?? '?'}
                 </div>
-                {exc.excluded_by ?? 'Tidak diketahui'}
+                {exc.excluded_by ?? t("Unknown")}
               </div>
             </div>
             );

@@ -2,10 +2,12 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import ReportGenerator from '@/components/reports/ReportGenerator';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ReportsPage() {
   const [readings, setReadings] = useState<any[]>([]);
   const [exclusions, setExclusions] = useState<any[]>([]);
+  const { t } = useLanguage();
 
   const fetchExclusions = async () => {
     try {
@@ -69,8 +71,8 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1 mb-8">
-        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">Laporan Sistem</h1>
-        <p className="text-slate-400">Buat dan ekspor laporan kinerja.</p>
+        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">{t("System Reports")}</h1>
+        <p className="text-slate-400">{t("Generate Reports")}</p>
       </div>
 
       <ReportGenerator readings={readings} exclusions={exclusions} />
