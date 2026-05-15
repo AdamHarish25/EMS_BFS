@@ -79,7 +79,8 @@ const translations: Record<Language, Record<string, string>> = {
     "ReportsMenu": "Laporan",
     "Fetching Data": "Mengambil Data...",
     "Rendering PDF": "Membuat PDF...",
-    "System Online": "Sistem Online"
+    "System Online": "Sistem Online",
+    "System Offline": "Sistem Offline"
   },
   en: {
     "System Dashboard": "System Dashboard",
@@ -150,7 +151,8 @@ const translations: Record<Language, Record<string, string>> = {
     "ReportsMenu": "Reports",
     "Fetching Data": "Fetching Data...",
     "Rendering PDF": "Rendering PDF...",
-    "System Online": "System Online"
+    "System Online": "System Online",
+    "System Offline": "System Offline"
   }
 };
 

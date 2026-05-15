@@ -1,4 +1,5 @@
 "use client";
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Activity, Database, FileText, Settings, ShieldAlert, Globe } from 'lucide-react';
@@ -19,6 +20,25 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { lang, toggleLang, t } = useLanguage();
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    // Check initial status
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
+    }
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full py-6 px-4">
@@ -62,10 +82,18 @@ export default function Sidebar() {
           </span>
         </button>
 
-        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 transition-colors duration-300">
           <div className="flex items-center gap-3 text-sm">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-            <span className="text-slate-300 font-medium">{t("System Online")}</span>
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              isOnline ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+            )} />
+            <span className={cn(
+              "font-medium transition-colors duration-300",
+              isOnline ? "text-slate-300" : "text-red-400"
+            )}>
+              {isOnline ? t("System Online") : t("System Offline")}
+            </span>
           </div>
         </div>
       </div>
