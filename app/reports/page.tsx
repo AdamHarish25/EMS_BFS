@@ -69,8 +69,8 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1 mb-8">
-        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">System Reports</h1>
-        <p className="text-slate-400">Generate and export performance reports.</p>
+        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">Laporan Sistem</h1>
+        <p className="text-slate-400">Buat dan ekspor laporan kinerja.</p>
       </div>
 
       <ReportGenerator readings={readings} exclusions={exclusions} />

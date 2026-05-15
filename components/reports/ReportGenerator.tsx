@@ -155,17 +155,17 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       // HEADER
       pdf.setFontSize(20);
       pdf.setTextColor(40);
-      pdf.text('Central AC Monitoring Report', 14, 22);
+      pdf.text('Laporan Pemantauan Central AC', 14, 22);
 
       pdf.setFontSize(10);
       pdf.setTextColor(100);
-      pdf.text(`Generated on: ${format(new Date(), 'PPP p')}`, 14, 28);
-      pdf.text(`Report Type: ${reportType}`, 14, 34);
+      pdf.text(`Dibuat pada: ${format(new Date(), 'PPP p')}`, 14, 28);
+      pdf.text(`Tipe Laporan: ${reportType}`, 14, 34);
       pdf.text(`Ruangan: ${selectedRoom}`, 14, 40);
 
       const dateRangeText = startDate || endDate
-        ? `Period: ${startDate ? format(new Date(startDate), 'PPP p') : 'Start'} to ${endDate ? format(new Date(endDate), 'PPP p') : 'Now'}`
-        : 'Period: All Time';
+        ? `Periode: ${startDate ? format(new Date(startDate), 'PPP p') : 'Awal'} sampai ${endDate ? format(new Date(endDate), 'PPP p') : 'Sekarang'}`
+        : 'Periode: Semua Waktu';
       pdf.text(dateRangeText, 14, 46);
 
       let finalY = 52;
@@ -188,7 +188,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
         pdf.setFontSize(14);
         pdf.setTextColor(40);
-        pdf.text('Valid Sensor Readings (Non-Fumigasi)', 14, finalY);
+        pdf.text('Pembacaan Sensor Valid (Non-Fumigasi)', 14, finalY);
         finalY += 5;
 
         const validRows = validReadings.map(r => [
@@ -218,7 +218,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
         pdf.setFontSize(14);
         pdf.setTextColor(40);
-        pdf.text('Excluded Sensor Readings (Fumigasi / Anomalies)', 14, finalY);
+        pdf.text('Pembacaan Sensor Dikecualikan (Fumigasi / Anomali)', 14, finalY);
         finalY += 5;
 
         const excludedRows = excludedReadings.map(r => [
@@ -251,10 +251,10 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       // SUMMARY MIN MAX & FORMULAS
       pdf.setFontSize(14);
       pdf.setTextColor(40);
-      pdf.text('Data Summary & Parameter Limits', 14, finalY);
+      pdf.text('Ringkasan Data & Batas Parameter', 14, finalY);
       finalY += 8;
 
-      const summaryTitle = reportType === 'Fumigasi' ? 'Excluded Data (Fumigasi)' : 'Valid Data (Non-Fumigasi)';
+      const summaryTitle = reportType === 'Fumigasi' ? 'Data Dikecualikan (Fumigasi)' : 'Data Valid (Non-Fumigasi)';
 
       pdf.setFontSize(10);
       pdf.setTextColor(60);
@@ -311,7 +311,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2 mb-6">
           <Filter className="w-5 h-5 text-blue-500" />
-          Filter Configuration
+          Konfigurasi Filter
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -329,7 +329,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Start Date & Time</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Tanggal & Waktu Mulai</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input
@@ -341,7 +341,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">End Date & Time</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Tanggal & Waktu Selesai</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input
@@ -353,7 +353,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Report Data Type</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Tipe Data Laporan</label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
@@ -392,9 +392,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         <div>
           <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
             <FileBarChart className="w-6 h-6 text-emerald-500" />
-            PDF Export
+            Ekspor PDF
           </h2>
-          <p className="text-slate-400 mt-1 text-sm">Download the comprehensive report based on your selected filters.</p>
+          <p className="text-slate-400 mt-1 text-sm">Unduh laporan komprehensif berdasarkan filter yang Anda pilih.</p>
         </div>
         <button
           onClick={handleGeneratePDF}
@@ -402,11 +402,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] whitespace-nowrap"
         >
           {isGenerating ? (
-            <span className="animate-pulse">Rendering PDF...</span>
+            <span className="animate-pulse">Membuat PDF...</span>
           ) : (
             <>
               <Download className="w-5 h-5" />
-              Download Report
+              Unduh Laporan
             </>
           )}
         </button>
@@ -414,23 +414,23 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-md">
-          <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">Filtered Records</p>
+          <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">Data Disaring</p>
           <p className="text-4xl font-bold text-slate-100 mt-2">{dateFilteredReadings.length}</p>
         </div>
         <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Fumigasi' ? 'bg-slate-900/50 border-emerald-900/20 opacity-50' : 'bg-slate-900 border-emerald-900/50'}`}>
-          <p className="text-sm font-medium text-emerald-500 uppercase tracking-wider">Valid Data</p>
+          <p className="text-sm font-medium text-emerald-500 uppercase tracking-wider">Data Valid</p>
           <p className="text-4xl font-bold text-emerald-400 mt-2">{validReadings.length}</p>
         </div>
         <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Non-Fumigasi' ? 'bg-slate-900/50 border-rose-900/20 opacity-50' : 'bg-slate-900 border-rose-900/50'}`}>
-          <p className="text-sm font-medium text-rose-500 uppercase tracking-wider">Fumigasi / Excluded</p>
+          <p className="text-sm font-medium text-rose-500 uppercase tracking-wider">Fumigasi / Dikecualikan</p>
           <p className="text-4xl font-bold text-rose-400 mt-2">{excludedReadings.length}</p>
         </div>
       </div>
 
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
-          Visual Preview
-          <span className="text-xs font-normal text-slate-500 bg-slate-950 px-2 py-1 rounded-md">Will be included in PDF</span>
+          Pratinjau Visual
+          <span className="text-xs font-normal text-slate-500 bg-slate-950 px-2 py-1 rounded-md">Akan disertakan di PDF</span>
         </h3>
 
         {/* We wrap it in a ref so html2canvas can capture it */}

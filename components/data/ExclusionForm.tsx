@@ -67,11 +67,11 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
       <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
         <AlertCircle className="w-5 h-5 text-rose-500" />
-        Add Data Exclusion
+        Tambah Pengecualian Data
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">Unit ID</label>
+          <label className="block text-sm font-medium text-slate-400 mb-1">Ruangan</label>
           <select
             value={unitId}
             onChange={(e) => setUnitId(e.target.value)}
@@ -83,9 +83,9 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1">Start Period</div>
+          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1">Periode Mulai</div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Date</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Tanggal</label>
             <input
               type="date"
               value={startDate}
@@ -94,7 +94,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Waktu</label>
             <input
               type="time"
               value={startTime}
@@ -103,9 +103,9 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             />
           </div>
 
-          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1 mt-2">End Period</div>
+          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1 mt-2">Periode Selesai</div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Date</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Tanggal</label>
             <input
               type="date"
               value={endDate}
@@ -114,7 +114,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Waktu</label>
             <input
               type="time"
               value={endTime}
@@ -124,13 +124,13 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">Reason for Exclusion</label>
+          <label className="block text-sm font-medium text-slate-400 mb-1">Alasan Pengecualian</label>
           <textarea
             rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
-            placeholder="e.g. Sensor calibration, Maintenance..."
+            placeholder="contoh: Kalibrasi sensor, Maintenance..."
           />
         </div>
         <button
@@ -138,7 +138,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
           disabled={isSubmitting}
           className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-medium py-2.5 rounded-xl transition-colors shadow-[0_0_15px_rgba(244,63,94,0.3)]"
         >
-          {isSubmitting ? 'Memproses...' : 'Exclude Data & Move to DB'}
+          {isSubmitting ? 'Memproses...' : 'Kecualikan Data & Simpan ke DB'}
         </button>
       </form>
     </div>

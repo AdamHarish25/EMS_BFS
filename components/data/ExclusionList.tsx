@@ -6,7 +6,7 @@ export default function ExclusionList({ exclusions, onDelete }: { exclusions: an
   return (
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
       <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-        <h3 className="font-medium text-slate-200">Active Exclusions</h3>
+        <h3 className="font-medium text-slate-200">Pengecualian Aktif</h3>
         <span className="text-xs font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
           {Array.from(new Set(exclusions.map(e => `${e.unit_id}-${e.timestamp_start}-${e.timestamp_end}`))).length} TOTAL
         </span>
@@ -14,7 +14,7 @@ export default function ExclusionList({ exclusions, onDelete }: { exclusions: an
       
       {exclusions.length === 0 ? (
         <div className="p-8 text-center text-slate-500 text-sm">
-          No active data exclusions
+          Tidak ada pengecualian data aktif
         </div>
       ) : (
         <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
@@ -41,7 +41,7 @@ export default function ExclusionList({ exclusions, onDelete }: { exclusions: an
                 <button 
                   onClick={() => onDelete(excId)}
                   className="text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all p-2"
-                  title="Remove Exclusion"
+                  title="Hapus Pengecualian"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -51,7 +51,7 @@ export default function ExclusionList({ exclusions, onDelete }: { exclusions: an
                 <div className="w-4 h-4 rounded-full bg-slate-800 flex items-center justify-center text-[8px] text-slate-400">
                   {exc.excluded_by?.charAt(0).toUpperCase() ?? '?'}
                 </div>
-                {exc.excluded_by ?? 'Unknown'}
+                {exc.excluded_by ?? 'Tidak diketahui'}
               </div>
             </div>
             );

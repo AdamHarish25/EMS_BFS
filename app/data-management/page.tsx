@@ -136,8 +136,8 @@ export default function DataManagementPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">Data Management</h1>
-        <p className="text-slate-400">Manage data exclusions and view raw sensor telemetry.</p>
+        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">Manajemen Data</h1>
+        <p className="text-slate-400">Kelola pengecualian data dan lihat telemetri sensor mentah.</p>
       </div>
 
       {/* FILTER PANEL */}
@@ -156,7 +156,7 @@ export default function DataManagementPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Start Date & Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tanggal & Waktu Mulai</label>
             <input
               type="datetime-local"
               value={startDate}
@@ -165,7 +165,7 @@ export default function DataManagementPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">End Date & Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tanggal & Waktu Selesai</label>
             <input
               type="datetime-local"
               value={endDate}

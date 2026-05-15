@@ -23,18 +23,18 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden shadow-xl">
       <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-        <h3 className="font-medium text-slate-200">Raw Sensor Telemetry</h3>
-        <span className="text-xs font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">{allData.length} records shown</span>
+        <h3 className="font-medium text-slate-200">Telemetri Sensor Mentah</h3>
+        <span className="text-xs font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">{allData.length} data ditampilkan</span>
       </div>
       <div className="overflow-x-auto max-h-[800px] custom-scrollbar">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-slate-400 uppercase bg-slate-950/80 sticky top-0 z-10 backdrop-blur-sm">
             <tr>
-              <th className="px-6 py-4 font-semibold tracking-wider">Timestamp</th>
-              <th className="px-6 py-4 font-semibold tracking-wider">Unit ID</th>
-              <th className="px-6 py-4 font-semibold tracking-wider">Temp (°C)</th>
-              <th className="px-6 py-4 font-semibold tracking-wider">RH (%)</th>
-              <th className="px-6 py-4 font-semibold tracking-wider">DP (Pa)</th>
+              <th className="px-6 py-4 font-semibold tracking-wider">Waktu</th>
+              <th className="px-6 py-4 font-semibold tracking-wider">Ruangan</th>
+              <th className="px-6 py-4 font-semibold tracking-wider">Suhu (°C)</th>
+              <th className="px-6 py-4 font-semibold tracking-wider">Kelembapan (%)</th>
+              <th className="px-6 py-4 font-semibold tracking-wider">Tekanan (Pa)</th>
               <th className="px-6 py-4 font-semibold tracking-wider text-right">Status</th>
             </tr>
           </thead>
@@ -54,7 +54,7 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
                     {excluded && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/10 text-rose-500 border border-rose-500/20">
                         <ShieldAlert className="w-3 h-3" />
-                        Excluded
+                        Dikecualikan
                       </span>
                     )}
                     {!excluded && (

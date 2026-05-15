@@ -130,7 +130,7 @@ export default function Dashboard() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">System Dashboard</h1>
+        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">Dasbor Sistem</h1>
         <p className="text-slate-400">Monitor Central AC berdasarkan rentang waktu yang dipilih.</p>
       </div>
 
@@ -153,7 +153,7 @@ export default function Dashboard() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Start Date & Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tanggal & Waktu Mulai</label>
             <input
               type="datetime-local"
               value={startDate}
@@ -162,7 +162,7 @@ export default function Dashboard() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">End Date & Time</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tanggal & Waktu Selesai</label>
             <input
               type="datetime-local"
               value={endDate}
@@ -189,7 +189,7 @@ export default function Dashboard() {
       {/* METRIC CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard
-          title="Temperature"
+          title="Suhu"
           value={hasFetched ? (actualLatest.temperature?.toFixed(1) ?? '--') : '--'}
           unit="°C"
           icon={Thermometer}
@@ -197,7 +197,7 @@ export default function Dashboard() {
           status={hasFetched ? actualLatest.status : 'normal'}
         />
         <MetricCard
-          title="Humidity"
+          title="Kelembapan"
           value={hasFetched ? (actualLatest.relative_humidity?.toFixed(1) ?? '--') : '--'}
           unit="%"
           icon={Droplets}
@@ -205,7 +205,7 @@ export default function Dashboard() {
           status={hasFetched ? actualLatest.status : 'normal'}
         />
         <MetricCard
-          title="Differential Pressure"
+          title="Tekanan Diferensial"
           value={hasFetched ? (actualLatest.differential_pressure?.toFixed(1) ?? '--') : '--'}
           unit="Pa"
           icon={Wind}

@@ -26,7 +26,7 @@ export default function LiveChart({ data }: { data: DataPoint[] }) {
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full">
       <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-        Live Sensor Trends
+        Tren Sensor Langsung
       </h3>
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -39,9 +39,9 @@ export default function LiveChart({ data }: { data: DataPoint[] }) {
               itemStyle={{ color: '#f8fafc' }}
             />
             <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
-            <Line isAnimationActive={false} type="monotone" dataKey="temperature" name="Temp (°C)" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            <Line isAnimationActive={false} type="monotone" dataKey="relative_humidity" name="RH (%)" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            <Line isAnimationActive={false} type="monotone" dataKey="differential_pressure" name="DP (Pa)" stroke="#eab308" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="temperature" name="Suhu (°C)" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="relative_humidity" name="Kelembapan (%)" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Line isAnimationActive={false} type="monotone" dataKey="differential_pressure" name="Tekanan (Pa)" stroke="#eab308" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

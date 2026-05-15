@@ -19,9 +19,9 @@
 9. [Cara Deploy ke Jaringan LAN](#9-cara-deploy-ke-jaringan-lan)
 10. [Cara Deploy ke Internet (Cloudflare Tunnel)](#10-cara-deploy-ke-internet-cloudflare-tunnel)
 11. [Fitur Data Exclusion](#11-fitur-data-exclusion)
-12. [Konfigurasi Database (`lib/db.ts`)](#12-konfigurasi-database-libdbts)
+12. [Konfigurasi Database & Environment Variables](#12-konfigurasi-database--environment-variables)
 13. [Keterbatasan & Catatan Penting](#13-keterbatasan--catatan-penting)
-14. [Riwayat Perubahan Arsitektur](#14-riwayat-perubahan-arsitektur)
+14. [Riwayat Perubahan Arsitektur & Changelog](#14-riwayat-perubahan-arsitektur--changelog)
 
 ---
 
@@ -413,10 +413,10 @@ npm run dev
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  user: 'appuser',        // ← username PostgreSQL
-  host: '10.165.41.45',  // ← IP server database
-  database: 'production', // ← nama database
-  password: 'appuser',    // ← password (ganti dengan yang asli)
+  user: 'your_username',        // ← username PostgreSQL
+  host: 'your_database_ip',  // ← IP server database
+  database: 'your_database', // ← nama database
+  password: '[PASSWORD]',    // ← password (ganti dengan yang asli)
   port: 5432,
 });
 
@@ -444,43 +444,7 @@ Aplikasi akan tersedia di:
 
 ---
 
-## 10. Cara Deploy ke Internet (Cloudflare Tunnel)
-
-Jika ingin aplikasi bisa diakses dari luar jaringan kantor:
-
-### Prasyarat
-- Akun Cloudflare (gratis)
-- Domain yang dikelola oleh Cloudflare
-- `cloudflared` terinstall di PC Server
-
-### Langkah Setup Cloudflare Tunnel
-
-```bash
-# Di PC Server (tempat Next.js berjalan):
-
-# 1. Install cloudflared
-wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-sudo dpkg -i cloudflared-linux-amd64.deb
-
-# 2. Login ke Cloudflare
-cloudflared tunnel login
-
-# 3. Buat tunnel
-cloudflared tunnel create ems-dashboard
-
-# 4. Arahkan ke port Next.js
-cloudflared tunnel route dns ems-dashboard app.namadomain.com
-
-# 5. Jalankan sebagai service
-sudo cloudflared service install
-sudo systemctl start cloudflared
-```
-
-Setelah aktif, buka `https://app.namadomain.com` dari mana saja.
-
----
-
-## 11. Fitur Data Exclusion
+## 10. Fitur Data Exclusion
 
 ### Konsep
 
@@ -515,31 +479,24 @@ Sekarang (BENAR — hanya perlu INSERT + SELECT):
 
 ---
 
-## 12. Konfigurasi Database (`lib/db.ts`)
+## 12. Konfigurasi Database & Environment Variables
 
-File `lib/db.ts` adalah satu-satunya tempat konfigurasi koneksi database. Semua API Routes mengimport dari file ini.
+Semua kredensial database dan URL Node-RED disimpan di `.env.local` untuk keamanan. File ini tidak di-commit ke Git (sudah masuk `.gitignore`).
 
-```typescript
-// lib/db.ts
-import { Pool } from 'pg';
+**Contoh isi `.env.local`:**
+```env
+# Database
+DB_HOST=ip_address_database
+DB_PORT=5432
+DB_NAME=nama_database
+DB_USER=user_database
+DB_PASSWORD=password_database
 
-const pool = new Pool({
-  user: 'appuser',
-  host: '10.165.41.45',
-  database: 'production',
-  password: 'appuser',
-  port: 5432,
-});
-
-export const query = (text: string, params?: any[]) => pool.query(text, params);
-export default pool;
+# Node-RED
+NEXT_PUBLIC_NODE_RED_URL=http://10.165.40.127:1880
 ```
 
-> ⚠️ **Jangan commit file ini ke GitHub** jika berisi password production.  
-> Alternatif: gunakan environment variable di `.env.local`:
-> ```bash
-> DATABASE_URL=postgresql://appuser:appuser@10.165.41.45:5432/production
-> ```
+File `lib/db.ts` memuat konfigurasi ini menggunakan `process.env`. Pool database juga dilengkapi dengan timeout (`connectionTimeoutMillis: 5000`) agar aplikasi tidak hang jika database down.
 
 ---
 
@@ -565,7 +522,7 @@ export default pool;
 
 ---
 
-## 14. Riwayat Perubahan Arsitektur
+## 14. Riwayat Perubahan Arsitektur & Changelog
 
 | Tanggal | Perubahan |
 |---------|-----------|
@@ -577,6 +534,9 @@ export default pool;
 | Sesi 4 | Migrasi dari Node-RED ke **koneksi langsung PostgreSQL** via Next.js API Routes |
 | Sesi 4 | Perubahan logika exclusion: dari DELETE+INSERT menjadi INSERT-only marker |
 | Sesi 4 | Penyatuan sumber data: dropdown ruangan dibaca dari BFS_EMS_Sensor + BFS_EMS_Fumigasi |
+| Mei 2026 | **Stabilisasi Exclusion:** Fix tombol delete, hapus duplikasi ruangan (trim), migrasi INSERT Fumigasi ke Next.js API, highlight baris Excluded di tabel. |
+| Mei 2026 | **Performa & UI:** Fix data excluded di PDF (trim issue), simpan Temp/RH/DP ke Fumigasi (INSERT...SELECT), deduplikasi UI list Exclusion, pagination tabel 50 baris/halaman. |
+| Mei 2026 | **Keamanan & Fetch:** Sistem "Filter Dulu, Tampilkan Data" di semua halaman (hapus auto-fetch/polling), set DB connection timeout (5s), pindah kredensial ke `.env.local`. |
 
 ---
 
