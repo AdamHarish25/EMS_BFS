@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [endDate, setEndDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const getStatus = (temp: number, rh: number, dp: number) => {
     if (temp > 25 || rh > 60 || dp <= 20) return 'critical';
@@ -60,6 +61,7 @@ export default function Dashboard() {
 
     setIsLoading(true);
     setReadings([]);
+    setFetchError(null);
 
     try {
       const [sensorRes, exclusionRes] = await Promise.all([
@@ -75,8 +77,19 @@ export default function Dashboard() {
         fetch('/api/get-exclusions')
       ]);
 
-      const sensorData = await sensorRes.json();
-      const exclusionData = await exclusionRes.json();
+      if (!sensorRes.ok) throw new Error(`Sensor API HTTP ${sensorRes.status}`);
+      if (!exclusionRes.ok) throw new Error(`Exclusion API HTTP ${exclusionRes.status}`);
+
+      const sensorText = await sensorRes.text();
+      const exclusionText = await exclusionRes.text();
+      
+      let sensorData, exclusionData;
+      try {
+        sensorData = JSON.parse(sensorText);
+        exclusionData = JSON.parse(exclusionText);
+      } catch (e) {
+        throw new Error(`Invalid JSON response. Sensor: ${sensorText.substring(0, 20)}...`);
+      }
 
       const formatted = (Array.isArray(sensorData) ? sensorData : []).map(formatRow);
       const excFormatted = (Array.isArray(exclusionData) ? exclusionData : []).map((e: any) => ({
@@ -94,6 +107,8 @@ export default function Dashboard() {
         toast.success(`${formatted.length} ${t("Data Loaded")}`);
       }
     } catch (error: any) {
+      console.error("Fetch error:", error);
+      setFetchError(error.message);
       toast.error(`Gagal mengambil data: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -220,9 +235,19 @@ export default function Dashboard() {
       <div>
         {!hasFetched ? (
           <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full flex flex-col items-center justify-center text-slate-500">
-            <Filter className="w-12 h-12 mb-4 opacity-30" />
-            <p className="text-xl font-medium text-slate-400">{t("No Data")}</p>
-            <p className="text-sm mt-2">{t("Fill Filter")}</p>
+            {fetchError ? (
+              <>
+                <div className="w-12 h-12 mb-4 text-red-500 flex items-center justify-center rounded-full bg-red-500/10">!</div>
+                <p className="text-xl font-medium text-red-400">Terjadi Error</p>
+                <p className="text-sm mt-2 max-w-md text-center text-red-300/70">{fetchError}</p>
+              </>
+            ) : (
+              <>
+                <Filter className="w-12 h-12 mb-4 opacity-30" />
+                <p className="text-xl font-medium text-slate-400">{t("No Data")}</p>
+                <p className="text-sm mt-2">{t("Fill Filter")}</p>
+              </>
+            )}
           </div>
         ) : (
           <LiveChart data={sortedReadings} />
