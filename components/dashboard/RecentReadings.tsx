@@ -6,9 +6,9 @@ export default function RecentReadings({ readings }: { readings: any[] }) {
   return (
     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 w-full overflow-hidden">
       <h3 className="text-lg font-medium text-slate-200 mb-6">{t("Recent Readings")}</h3>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto max-h-[400px] custom-scrollbar pr-2">
         <table className="w-full text-left text-sm text-slate-400">
-          <thead className="text-xs uppercase bg-slate-800/50 text-slate-300">
+          <thead className="text-xs uppercase bg-slate-800/80 text-slate-300 sticky top-0 z-10 backdrop-blur-sm">
             <tr>
               <th className="px-4 py-3 rounded-tl-lg">{t("Time")}</th>
               <th className="px-4 py-3">{t("Unit")}</th>
@@ -19,7 +19,7 @@ export default function RecentReadings({ readings }: { readings: any[] }) {
             </tr>
           </thead>
           <tbody>
-            {readings.slice(0, 10).map((reading, i) => (
+            {readings.map((reading, i) => (
               <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
                 <td className="px-4 py-3 font-medium text-slate-300">
                   {format(new Date(reading.timestamp), 'HH:mm:ss')}
