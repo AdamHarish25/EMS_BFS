@@ -8,20 +8,20 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
   const { t } = useLanguage();
 
   const isExcluded = (reading: any) => {
-    return exclusions.some(exc => {
-      if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (reading.unit_id || '').trim()) return false;
-      const readingTime = new Date(reading.timestamp).getTime();
-      const start = new Date(exc.timestamp_start).getTime();
-      const end = new Date(exc.timestamp_end).getTime();
-      return readingTime >= start && readingTime <= end;
-    });
+    const readingTime = reading.timestampValue;
+    if (!readingTime) return false; // Fallback jika tidak ada timestampValue
+    
+    // Looping klasik jauh lebih cepat daripada .some() untuk puluhan ribu data
+    for (let i = 0; i < exclusions.length; i++) {
+      const exc = exclusions[i];
+      if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (reading.unit_id || '').trim()) continue;
+      if (readingTime >= exc.startTime && readingTime <= exc.endTime) return true;
+    }
+    return false;
   };
 
-  const allData = [...readings].sort((a, b) => {
-    const timeA = new Date(a.timestamp ?? a.timestamp_start ?? 0).getTime();
-    const timeB = new Date(b.timestamp ?? b.timestamp_start ?? 0).getTime();
-    return timeB - timeA;
-  });
+  // Kita tidak perlu copy array dan .sort() manual lagi karena sudah di-sort dari parent (page.tsx)
+  const allData = readings;
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden shadow-xl">

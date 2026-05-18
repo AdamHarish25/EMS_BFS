@@ -35,7 +35,13 @@ export default function DataManagementPage() {
       const res = await fetch('/api/get-exclusions');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setExclusions(Array.isArray(data) ? data : []);
+      // Pre-calculate timestamp untuk optimasi super cepat
+      const formattedExc = (Array.isArray(data) ? data : []).map(exc => ({
+         ...exc,
+         startTime: new Date(exc.timestamp_start).getTime(),
+         endTime: new Date(exc.timestamp_end).getTime()
+      }));
+      setExclusions(formattedExc);
     } catch (error) {
       console.error('Gagal sinkron data exclusions:', error);
     }
@@ -58,6 +64,9 @@ export default function DataManagementPage() {
     setIsLoading(true);
     setReadings([]);
 
+    // Beri jeda 50ms agar UI sempat update "Loading" sebelum CPU terkunci
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     try {
       const [sensorRes] = await Promise.all([
         fetch('/api/report-readings', {
@@ -73,27 +82,33 @@ export default function DataManagementPage() {
       ]);
 
       const sensorData = await sensorRes.json();
+      
       const formatted = (Array.isArray(sensorData) ? sensorData : []).map((item: any, i: number) => {
         const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
-        let parsedTime = new Date();
+        let timestampValue;
         if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
           const tsStr = String(rawTime);
-          parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
+          timestampValue = Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1);
         } else {
-          parsedTime = new Date(rawTime);
+          timestampValue = new Date(rawTime).getTime();
         }
+
         return {
           ...item,
           id: item.id || `r-${i}`,
           unit_id: typeof item.unit_id === 'string' ? item.unit_id.trim() : item.unit_id,
-          timestamp: parsedTime.toISOString(),
-          jam_asli: format(parsedTime, 'yyyy-MM-dd HH:mm:ssx'),
+          timestamp: new Date(timestampValue).toISOString(),
+          timestampValue, // Simpan angka mentah agar tidak perlu new Date() lagi di table
+          jam_asli: item.jam_asli || format(timestampValue, 'yyyy-MM-dd HH:mm:ssx'),
           status: (typeof item.status === 'string' ? item.status.trim().toLowerCase() : item.status)
             || getStatus(item.temperature, item.relative_humidity, item.differential_pressure)
         };
       });
 
-      setReadings(formatted.reverse());
+      // Urutkan dari yang terbaru ke terlama secara in-place (O(N log N)) SEKARANG juga
+      formatted.sort((a, b) => b.timestampValue - a.timestampValue);
+
+      setReadings(formatted);
       setHasFetched(true);
 
       if (formatted.length === 0) {
