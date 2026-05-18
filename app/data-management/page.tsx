@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Loader2, Search } from 'lucide-react';
@@ -40,6 +40,10 @@ export default function DataManagementPage() {
       console.error('Gagal sinkron data exclusions:', error);
     }
   };
+
+  useEffect(() => {
+    fetchExclusions();
+  }, []);
 
   const handleFetchData = async () => {
     if (selectedRoom === 'Pilih Ruangan') {
