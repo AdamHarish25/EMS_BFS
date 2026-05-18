@@ -21,6 +21,7 @@ export default function DataManagementPage() {
   const [selectedRoom, setSelectedRoom] = useState('Pilih Ruangan');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [dataInterval, setDataInterval] = useState('raw');
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
 
@@ -37,9 +38,9 @@ export default function DataManagementPage() {
       const data = await res.json();
       // Pre-calculate timestamp untuk optimasi super cepat
       const formattedExc = (Array.isArray(data) ? data : []).map(exc => ({
-         ...exc,
-         startTime: new Date(exc.timestamp_start).getTime(),
-         endTime: new Date(exc.timestamp_end).getTime()
+        ...exc,
+        startTime: new Date(exc.timestamp_start).getTime(),
+        endTime: new Date(exc.timestamp_end).getTime()
       }));
       setExclusions(formattedExc);
     } catch (error) {
@@ -82,7 +83,7 @@ export default function DataManagementPage() {
       ]);
 
       const sensorData = await sensorRes.json();
-      
+
       const formatted = (Array.isArray(sensorData) ? sensorData : []).map((item: any, i: number) => {
         const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
         let timestampValue;
@@ -106,15 +107,39 @@ export default function DataManagementPage() {
       });
 
       // Urutkan dari yang terbaru ke terlama secara in-place (O(N log N)) SEKARANG juga
-      formatted.sort((a, b) => b.timestampValue - a.timestampValue);
+      formatted.sort((a, b) => a.timestampValue - b.timestampValue);
 
-      setReadings(formatted);
+      let finalData = formatted;
+      if (dataInterval === '5m') {
+        finalData = [];
+        let lastTime = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (formatted[i].timestampValue - lastTime >= 5 * 60 * 1000) {
+            finalData.push(formatted[i]);
+            lastTime = formatted[i].timestampValue;
+          }
+        }
+      } else if (dataInterval === '1h') {
+        finalData = [];
+        let lastTime = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (formatted[i].timestampValue - lastTime >= 60 * 60 * 1000) {
+            finalData.push(formatted[i]);
+            lastTime = formatted[i].timestampValue;
+          }
+        }
+      }
+
+      // Reverse balik agar yang terbaru ada di atas untuk tabel
+      finalData.reverse();
+
+      setReadings(finalData);
       setHasFetched(true);
 
-      if (formatted.length === 0) {
+      if (finalData.length === 0) {
         toast.error(t("No Data Found"));
       } else {
-        toast.success(`${formatted.length} ${t("Data Loaded")}`);
+        toast.success(`${finalData.length} ${t("Data Loaded")}`);
       }
     } catch (error: any) {
       toast.error(`Gagal mengambil data: ${error.message}`);
@@ -164,7 +189,7 @@ export default function DataManagementPage() {
       {/* FILTER PANEL */}
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-base font-semibold text-slate-200 mb-4">🔍 Filter Data Sensor</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">{t("Room")}</label>
             <select
@@ -193,6 +218,18 @@ export default function DataManagementPage() {
               onChange={(e) => { setEndDate(e.target.value); setHasFetched(false); }}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm [&::-webkit-calendar-picker-indicator]:invert"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Interval Data</label>
+            <select
+              value={dataInterval}
+              onChange={(e) => { setDataInterval(e.target.value); setHasFetched(false); }}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
+            >
+              <option value="raw">Semua Data (Raw)</option>
+              <option value="5m">Per 5 Menit</option>
+              <option value="1h">Per 1 Jam</option>
+            </select>
           </div>
           <div>
             <button
