@@ -356,7 +356,14 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     }
   };
 
-  console.log(formatSummaryNumber(excludedStats.minTemp, '°C'))
+  // Fungsi untuk memadatkan (downsample) data khusus untuk chart
+  // Agar maksimal titik yang digambar chart tidak lebih dari 200 titik
+  const downsampleData = (data: any[], maxPoints: number = 200) => {
+    if (!data || data.length <= maxPoints) return data;
+    const step = Math.ceil(data.length / maxPoints);
+    return data.filter((_, index) => index % step === 0);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -502,7 +509,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               <p className="text-sm mt-2">{t("Fill Filter PDF")}</p>
             </div>
           ) : (
-            <ReportChart validReadings={validReadings} excludedReadings={excludedReadings} />
+            <ReportChart validReadings={downsampleData(validReadings, 200)} excludedReadings={downsampleData(excludedReadings, 200)} />
           )}
         </div>
       </div>
