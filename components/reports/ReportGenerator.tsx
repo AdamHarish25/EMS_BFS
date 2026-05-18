@@ -39,10 +39,24 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     }));
   }, [exclusions]);
 
+
+  const toNumeric = (value: any): number | null => {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'string') {
+      const normalized = value.replace(',', '.').trim();
+      if (!normalized) return null;
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   // Fetch HANYA ketika user klik tombol "Tarik Data" - bukan auto-fetch
   const fetchReportData = async () => {
     if (!startDate || !endDate) {
-      toast.error('Pilih Start Date & End Date terlebih dahulu sebelum menarik data!');
+      toast.error('Pilih Start Date & End Date terlebih dahulu!');
       return;
     }
     if (selectedRoom === 'Pilih Ruangan') {
@@ -52,6 +66,10 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
     setIsLoadingData(true);
     setServerReadings([]);
+
+    // Trik UI: Beri napas 50ms agar browser sempat me-render tulisan "Loading..." sebelum CPU terkunci
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     try {
       const res = await fetch('/api/report-readings', {
         method: 'POST',
@@ -63,17 +81,28 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         })
       });
       const data = await res.json();
+
+      // OPTIMASI: Parse tanggal dan angka SATU KALI SAJA di sini
       const formatted = (Array.isArray(data) ? data : []).map(item => {
         const rawTime = item.jam_asli || item.timestamp || new Date().toISOString();
-        let parsedTime = new Date();
+        let timestampValue;
         if (typeof rawTime === 'number' || !isNaN(Number(rawTime))) {
           const tsStr = String(rawTime);
-          parsedTime = new Date(Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1));
+          timestampValue = Number(rawTime) * (tsStr.length <= 10 ? 1000 : 1);
         } else {
-          parsedTime = new Date(rawTime);
+          timestampValue = new Date(rawTime).getTime();
         }
-        return { ...item, timestamp: parsedTime.toISOString() };
+
+        return {
+          ...item,
+          timestamp: new Date(timestampValue).toISOString(),
+          timestampValue, // Simpan mentahannya agar tidak perlu new Date() lagi
+          numTemp: toNumeric(item.temperature),
+          numRH: toNumeric(item.relative_humidity),
+          numDP: toNumeric(item.differential_pressure)
+        };
       });
+
       setServerReadings(formatted);
       if (formatted.length === 0) {
         toast.error('Tidak ada data ditemukan pada rentang waktu yang dipilih.');
@@ -95,11 +124,14 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     const valid: any[] = [];
     const excluded: any[] = [];
 
-    for (const r of dateFilteredReadings) {
-      const readingTime = new Date(r.timestamp).getTime();
+    for (let i = 0; i < dateFilteredReadings.length; i++) {
+      const r = dateFilteredReadings[i];
+      // BACA LANGSUNG ANGKA MENTAH! 99% lebih ringan tanpa new Date()
+      const readingTime = r.timestampValue;
       let isExc = false;
 
-      for (const exc of parsedExclusions) {
+      for (let j = 0; j < parsedExclusions.length; j++) {
+        const exc = parsedExclusions[j];
         if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (r.unit_id || '').trim()) continue;
         if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
           isExc = true;
@@ -107,29 +139,14 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         }
       }
 
-      if (isExc) {
-        excluded.push(r);
-      } else {
-        valid.push(r);
-      }
+      if (isExc) excluded.push(r);
+      else valid.push(r);
     }
     return { validReadings: valid, excludedReadings: excluded };
   }, [dateFilteredReadings, parsedExclusions]);
 
   const includeValidTable = reportType !== 'Fumigasi';
   const includeExcludedTable = reportType !== 'Non-Fumigasi';
-  const toNumeric = (value: any): number | null => {
-    if (value === null || value === undefined || value === '') return null;
-    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
-    if (typeof value === 'string') {
-      const normalized = value.replace(',', '.').trim();
-      if (!normalized) return null;
-      const parsed = Number(normalized);
-      return Number.isFinite(parsed) ? parsed : null;
-    }
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  };
 
   const formatCellNumber = (value: any) => {
     const numeric = toNumeric(value);
@@ -147,10 +164,12 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     let minR: number | null = null, maxR: number | null = null;
     let minD: number | null = null, maxD: number | null = null;
 
-    for (const r of dataset) {
-      const temp = toNumeric(r.temperature);
-      const rh = toNumeric(r.relative_humidity);
-      const dp = toNumeric(r.differential_pressure);
+    for (let i = 0; i < dataset.length; i++) {
+      const r = dataset[i];
+      // LANGSUNG AMBIL VARIABLE PRE-CALCULATED, tanpa eksekusi toNumeric() berulang kali
+      const temp = r.numTemp;
+      const rh = r.numRH;
+      const dp = r.numDP;
 
       if (temp !== null) {
         minT = minT === null ? temp : Math.min(minT, temp);
@@ -166,15 +185,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       }
     }
 
-    return {
-      minTemp: minT,
-      maxTemp: maxT,
-      minRH: minR,
-      maxRH: maxR,
-      minDP: minD,
-      maxDP: maxD,
-    };
+    return { minTemp: minT, maxTemp: maxT, minRH: minR, maxRH: maxR, minDP: minD, maxDP: maxD };
   };
+
 
   const validStats = useMemo(() => calculateStats(validReadings), [validReadings]);
   const excludedStats = useMemo(() => calculateStats(excludedReadings), [excludedReadings]);
