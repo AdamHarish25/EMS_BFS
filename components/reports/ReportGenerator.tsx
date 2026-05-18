@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -116,37 +116,68 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     return { validReadings: valid, excludedReadings: excluded };
   }, [dateFilteredReadings, parsedExclusions]);
 
-  // Determine which dataset is the "main" one for the summary
-  const summaryData = reportType === 'Fumigasi' ? excludedReadings : validReadings;
+  const includeValidTable = reportType !== 'Fumigasi';
+  const includeExcludedTable = reportType !== 'Non-Fumigasi';
+  const toNumeric = (value: any): number | null => {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'string') {
+      const normalized = value.replace(',', '.').trim();
+      if (!normalized) return null;
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
 
-  // Compute Min/Max for Summary Data
-  const stats = useMemo(() => {
-    if (summaryData.length === 0) return { minTemp: 0, maxTemp: 0, minRH: 0, maxRH: 0, minDP: 0, maxDP: 0 };
+  const formatCellNumber = (value: any) => {
+    const numeric = toNumeric(value);
+    return numeric === null ? '-' : numeric.toFixed(2);
+  };
 
-    let minT = Infinity, maxT = -Infinity;
-    let minR = Infinity, maxR = -Infinity;
-    let minD = Infinity, maxD = -Infinity;
+  const formatSummaryNumber = (value: number | null, unit: string) => {
+    return value === null ? '-' : `${value.toFixed(2)} ${unit}`;
+  };
 
-    for (const r of summaryData) {
-      if (r.temperature < minT) minT = r.temperature;
-      if (r.temperature > maxT) maxT = r.temperature;
-      if (r.relative_humidity < minR) minR = r.relative_humidity;
-      if (r.relative_humidity > maxR) maxR = r.relative_humidity;
-      if (r.differential_pressure < minD) minD = r.differential_pressure;
-      if (r.differential_pressure > maxD) maxD = r.differential_pressure;
+  const calculateStats = (dataset: any[]) => {
+    if (dataset.length === 0) return { minTemp: null, maxTemp: null, minRH: null, maxRH: null, minDP: null, maxDP: null };
+
+    let minT: number | null = null, maxT: number | null = null;
+    let minR: number | null = null, maxR: number | null = null;
+    let minD: number | null = null, maxD: number | null = null;
+
+    for (const r of dataset) {
+      const temp = toNumeric(r.temperature);
+      const rh = toNumeric(r.relative_humidity);
+      const dp = toNumeric(r.differential_pressure);
+
+      if (temp !== null) {
+        minT = minT === null ? temp : Math.min(minT, temp);
+        maxT = maxT === null ? temp : Math.max(maxT, temp);
+      }
+      if (rh !== null) {
+        minR = minR === null ? rh : Math.min(minR, rh);
+        maxR = maxR === null ? rh : Math.max(maxR, rh);
+      }
+      if (dp !== null) {
+        minD = minD === null ? dp : Math.min(minD, dp);
+        maxD = maxD === null ? dp : Math.max(maxD, dp);
+      }
     }
 
     return {
-      minTemp: minT === Infinity ? 0 : minT,
-      maxTemp: maxT === -Infinity ? 0 : maxT,
-      minRH: minR === Infinity ? 0 : minR,
-      maxRH: maxR === -Infinity ? 0 : maxR,
-      minDP: minD === Infinity ? 0 : minD,
-      maxDP: maxD === -Infinity ? 0 : maxD,
+      minTemp: minT,
+      maxTemp: maxT,
+      minRH: minR,
+      maxRH: maxR,
+      minDP: minD,
+      maxDP: maxD,
     };
-  }, [summaryData]);
+  };
 
-  const { minTemp, maxTemp, minRH, maxRH, minDP, maxDP } = stats;
+  const validStats = useMemo(() => calculateStats(validReadings), [validReadings]);
+  const excludedStats = useMemo(() => calculateStats(excludedReadings), [excludedReadings]);
 
   const handleGeneratePDF = async () => {
     setIsGenerating(true);
@@ -185,7 +216,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       }
 
       // VALID DATA TABLE (Only for 'Semua Data' or 'Non-Fumigasi')
-      if (reportType !== 'Fumigasi' && validReadings.length > 0) {
+      if (includeValidTable && validReadings.length > 0) {
         if (finalY > 250) { pdf.addPage(); finalY = 20; }
 
         pdf.setFontSize(14);
@@ -196,9 +227,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         const validRows = validReadings.map(r => [
           format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm:ss'),
           r.unit_id,
-          r.temperature.toFixed(2),
-          r.relative_humidity.toFixed(2),
-          r.differential_pressure.toFixed(2),
+          formatCellNumber(r.temperature),
+          formatCellNumber(r.relative_humidity),
+          formatCellNumber(r.differential_pressure),
           r.status
         ]);
 
@@ -215,7 +246,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       }
 
       // EXCLUDED DATA TABLE (Only for 'Semua Data' or 'Fumigasi')
-      if (reportType !== 'Non-Fumigasi' && excludedReadings.length > 0) {
+      if (includeExcludedTable && excludedReadings.length > 0) {
         if (finalY > 250) { pdf.addPage(); finalY = 20; }
 
         pdf.setFontSize(14);
@@ -226,9 +257,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         const excludedRows = excludedReadings.map(r => [
           format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm:ss'),
           r.unit_id,
-          r.temperature.toFixed(2),
-          r.relative_humidity.toFixed(2),
-          r.differential_pressure.toFixed(2),
+          formatCellNumber(r.temperature),
+          formatCellNumber(r.relative_humidity),
+          formatCellNumber(r.differential_pressure),
           r.status
         ]);
 
@@ -256,16 +287,35 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       pdf.text('Ringkasan Data & Batas Parameter', 14, finalY);
       finalY += 8;
 
-      const summaryTitle = reportType === 'Fumigasi' ? 'Data Dikecualikan (Fumigasi)' : 'Data Valid (Non-Fumigasi)';
-
       pdf.setFontSize(10);
       pdf.setTextColor(60);
-      pdf.text(`1. ${summaryTitle} - Temperature (TT): Min = ${minTemp.toFixed(2)} °C | Max = ${maxTemp.toFixed(2)} °C`, 14, finalY);
-      finalY += 6;
-      pdf.text(`2. ${summaryTitle} - Relative Humidity (RH): Min = ${minRH.toFixed(2)} % | Max = ${maxRH.toFixed(2)} %`, 14, finalY);
-      finalY += 6;
-      pdf.text(`3. ${summaryTitle} - Differential Pressure (DP): Min = ${minDP.toFixed(2)} Pa | Max = ${maxDP.toFixed(2)} Pa`, 14, finalY);
-      finalY += 10;
+      if (includeValidTable) {
+        if (validReadings.length > 0) {
+          pdf.text(`Non-Fumigasi - Temperature (TT): Min = ${formatSummaryNumber(validStats.minTemp, '°C')} | Max = ${formatSummaryNumber(validStats.maxTemp, '°C')}`, 14, finalY);
+          finalY += 6;
+          pdf.text(`Non-Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(validStats.minRH, '%')} | Max = ${formatSummaryNumber(validStats.maxRH, '%')}`, 14, finalY);
+          finalY += 6;
+          pdf.text(`Non-Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(validStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP, 'Pa')}`, 14, finalY);
+          finalY += 8;
+        } else {
+          pdf.text('Non-Fumigasi: Tidak ada data pada tabel.', 14, finalY);
+          finalY += 8;
+        }
+      }
+      if (includeExcludedTable) {
+        if (excludedReadings.length > 0) {
+          pdf.text(`Fumigasi - Temperature (TT): Min = ${formatSummaryNumber(excludedStats.minTemp, '°C')} | Max = ${formatSummaryNumber(excludedStats.maxTemp, '°C')}`, 14, finalY);
+          finalY += 6;
+          pdf.text(`Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(excludedStats.minRH, '%')} | Max = ${formatSummaryNumber(excludedStats.maxRH, '%')}`, 14, finalY);
+          finalY += 6;
+          pdf.text(`Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(excludedStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP, 'Pa')}`, 14, finalY);
+          finalY += 8;
+        } else {
+          pdf.text('Fumigasi: Tidak ada data pada tabel.', 14, finalY);
+          finalY += 8;
+        }
+      }
+      finalY += 2;
 
       // Limit Formulas
       const limitTexts = [
@@ -305,6 +355,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       setIsGenerating(false);
     }
   };
+
+  console.log(formatSummaryNumber(excludedStats.minTemp, '°C'))
 
   return (
     <div className="space-y-6">
@@ -450,7 +502,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               <p className="text-sm mt-2">{t("Fill Filter PDF")}</p>
             </div>
           ) : (
-            <ReportChart readings={dateFilteredReadings} exclusions={parsedExclusions} />
+            <ReportChart validReadings={validReadings} excludedReadings={excludedReadings} />
           )}
         </div>
       </div>
