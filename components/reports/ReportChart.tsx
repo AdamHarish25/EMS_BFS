@@ -16,6 +16,22 @@ const chartCommonProps = {
   activeDot: { r: 3, strokeWidth: 0 },
 };
 
+const CustomDot = (props: any) => {
+  const { cx, cy, payload, dataKey } = props;
+  const value = payload[dataKey];
+  let isAlert = false;
+  if (dataKey === 'temperature') isAlert = value >= 24;
+  if (dataKey === 'relative_humidity') isAlert = value >= 59;
+  if (dataKey === 'differential_pressure') isAlert = value <= 8;
+
+  if (isAlert) {
+    return (
+      <circle cx={cx} cy={cy} r={4} fill="#ef4444" stroke="none" />
+    );
+  }
+  return null;
+};
+
 function MetricChart({
   title,
   unit,
@@ -29,19 +45,84 @@ function MetricChart({
   data: any[];
   dataKey: 'temperature' | 'relative_humidity' | 'differential_pressure';
 }) {
+  const values = data.map(d => Number(d[dataKey]));
+  const minVal = values.length ? Math.min(...values) : 0;
+  const maxVal = values.length ? Math.max(...values) : 0;
+
+  let yMin = minVal - (minVal * 0.1);
+  let yMax = maxVal + (maxVal * 0.1);
+
+  let threshold = 0;
+  let isGreater = true;
+
+  if (dataKey === 'temperature') {
+    threshold = 24;
+    yMin = Math.min(minVal - 1, 22);
+    yMax = Math.max(maxVal + 1, 26);
+    isGreater = true;
+  } else if (dataKey === 'relative_humidity') {
+    threshold = 59;
+    yMin = Math.min(minVal - 2, 50);
+    yMax = Math.max(maxVal + 2, 65);
+    isGreater = true;
+  } else if (dataKey === 'differential_pressure') {
+    threshold = 8;
+    yMin = Math.min(minVal - 2, 0);
+    yMax = Math.max(maxVal + 2, 12);
+    isGreater = false;
+  }
+
+  let percent = (yMax - threshold) / (yMax - yMin);
+  percent = Math.max(0, Math.min(1, percent));
+
+  const gradientId = `color-${dataKey}-${title.replace(/\s+/g, '')}`;
+
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-900/80 p-3">
-      <p className="text-sm font-medium text-slate-200 mb-2">{title}</p>
+    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+      <p className="text-sm font-medium text-slate-800 mb-2">{title}</p>
       <LineChart width={430} height={180} data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            {isGreater ? (
+              <>
+                <stop offset="0%" stopColor="#ef4444" stopOpacity={1} />
+                <stop offset={`${percent * 100}%`} stopColor="#ef4444" stopOpacity={1} />
+                <stop offset={`${percent * 100}%`} stopColor={color} stopOpacity={1} />
+                <stop offset="100%" stopColor={color} stopOpacity={1} />
+              </>
+            ) : (
+              <>
+                <stop offset="0%" stopColor={color} stopOpacity={1} />
+                <stop offset={`${percent * 100}%`} stopColor={color} stopOpacity={1} />
+                <stop offset={`${percent * 100}%`} stopColor="#ef4444" stopOpacity={1} />
+                <stop offset="100%" stopColor="#ef4444" stopOpacity={1} />
+              </>
+            )}
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
         <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-        <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+        <YAxis
+          stroke="#64748b"
+          fontSize={11}
+          tickLine={false}
+          axisLine={false}
+          domain={[yMin, yMax]}
+          allowDataOverflow
+        />
         <Tooltip
-          contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '10px' }}
-          itemStyle={{ color: '#f8fafc' }}
+          contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px' }}
+          itemStyle={{ color: '#0f172a' }}
           formatter={(value: number) => [`${Number(value).toFixed(2)} ${unit}`, title]}
         />
-        <Line {...chartCommonProps} dataKey={dataKey} name={title} stroke={color} connectNulls={false} />
+        <Line
+          {...chartCommonProps}
+          dataKey={dataKey}
+          name={title}
+          stroke={`url(#${gradientId})`}
+          connectNulls={false}
+          dot={<CustomDot dataKey={dataKey} />}
+        />
       </LineChart>
     </div>
   );
@@ -72,17 +153,17 @@ export default function ReportChart({
           <p className="text-base font-semibold text-emerald-400 mb-3">Non-Fumigation</p>
           <div className="grid grid-cols-2 gap-3">
             <MetricChart title="Temperature" unit="°C" color="#3b82f6" data={validData} dataKey="temperature" />
-            <MetricChart title="Relative Humidity" unit="%" color="#10b981" data={validData} dataKey="relative_humidity" />
-            <MetricChart title="Differential Pressure" unit="Pa" color="#eab308" data={validData} dataKey="differential_pressure" />
+            <MetricChart title="Relative Humidity" unit="%" color="#3b82f6" data={validData} dataKey="relative_humidity" />
+            <MetricChart title="Differential Pressure" unit="Pa" color="#3b82f6" data={validData} dataKey="differential_pressure" />
           </div>
         </div>
 
         <div>
           <p className="text-base font-semibold text-rose-400 mb-3">Fumigation</p>
           <div className="grid grid-cols-2 gap-3">
-            <MetricChart title="Temperature" unit="°C" color="#ef4444" data={excludedData} dataKey="temperature" />
-            <MetricChart title="Relative Humidity" unit="%" color="#f43f5e" data={excludedData} dataKey="relative_humidity" />
-            <MetricChart title="Differential Pressure" unit="Pa" color="#f97316" data={excludedData} dataKey="differential_pressure" />
+            <MetricChart title="Temperature" unit="°C" color="#3b82f6" data={excludedData} dataKey="temperature" />
+            <MetricChart title="Relative Humidity" unit="%" color="#3b82f6" data={excludedData} dataKey="relative_humidity" />
+            <MetricChart title="Differential Pressure" unit="Pa" color="#3b82f6" data={excludedData} dataKey="differential_pressure" />
           </div>
         </div>
       </div>

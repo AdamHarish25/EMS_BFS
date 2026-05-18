@@ -247,7 +247,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
       // CHART
       if (chartRef.current) {
-        const canvas = await html2canvas(chartRef.current, { backgroundColor: '#0f172a', scale: 2 });
+        const canvas = await html2canvas(chartRef.current, { backgroundColor: '#ffffff', scale: 2 });
         const imgData = canvas.toDataURL('image/png');
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pageWidth - 28;
@@ -312,6 +312,23 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           theme: 'striped',
           headStyles: { fillColor: [239, 68, 68] },
           styles: { fontSize: 8 },
+          didParseCell: (data) => {
+            if (data.section === 'body') {
+              const rowIndex = data.row.index;
+              const r = excludedReadings[rowIndex];
+              const temp = Number(r.temperature);
+              const rh = Number(r.relative_humidity);
+              const dp = Number(r.differential_pressure);
+              
+              // Cek threshold alert
+              const isWarning = temp >= 24 || rh >= 59 || dp <= 8;
+              if (isWarning) {
+                // Background merah muda pudar, teks merah gelap agar tetap terbaca jelas
+                data.cell.styles.fillColor = [254, 226, 226]; // red-100
+                data.cell.styles.textColor = [153, 27, 27];   // red-800
+              }
+            }
+          }
         });
 
         finalY = (pdf as any).lastAutoTable.finalY + 15;
@@ -550,7 +567,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         </h3>
 
         {/* We wrap it in a ref so html2canvas can capture it */}
-        <div ref={chartRef} className="p-6 bg-[#0f172a] rounded-xl border border-slate-800">
+        <div ref={chartRef} className="p-6 bg-white rounded-xl border border-slate-200">
           {selectedRoom === 'Pilih Ruangan' ? (
             <div className="w-full h-[400px] flex flex-col items-center justify-center text-slate-500">
               <Filter className="w-12 h-12 mb-4 opacity-30" />
