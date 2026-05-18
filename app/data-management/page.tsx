@@ -163,7 +163,7 @@ export default function DataManagementPage() {
               type="datetime-local"
               value={startDate}
               onChange={(e) => { setStartDate(e.target.value); setHasFetched(false); }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
           <div>
@@ -172,7 +172,7 @@ export default function DataManagementPage() {
               type="datetime-local"
               value={endDate}
               onChange={(e) => { setEndDate(e.target.value); setHasFetched(false); }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
           <div>

@@ -1,5 +1,6 @@
 "use client";
 import { format } from 'date-fns';
+import React from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -41,37 +42,67 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/50">
-            {allData.map((r, i) => {
-              const excluded = isExcluded(r);
-              return (
-                <tr key={r.id || i} className={`hover:bg-slate-800/40 transition-colors ${excluded ? 'bg-rose-950/20 hover:bg-rose-950/30 opacity-60' : ''}`}>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-300">
-                    {r.jam_asli || format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm:ss')}
-                  </td>
-                  <td className="px-6 py-4 text-slate-300 font-medium">{r.unit_id}</td>
-                  <td className="px-6 py-4 text-slate-300">{r.temperature != null ? r.temperature.toFixed(1) : '--'}</td>
-                  <td className="px-6 py-4 text-slate-300">{r.relative_humidity != null ? r.relative_humidity.toFixed(1) : '--'}</td>
-                  <td className="px-6 py-4 text-slate-300">{r.differential_pressure != null ? r.differential_pressure.toFixed(1) : '--'}</td>
-                  <td className="px-6 py-4 text-right flex justify-end gap-2 items-center">
-                    {excluded && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                        <ShieldAlert className="w-3 h-3" />
-                        {t("Excluded")}
-                      </span>
-                    )}
-                    {!excluded && (
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold border tracking-wider
-                        ${r.status === 'normal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                          r.status === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                            'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
-                        {r.status}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+            {(() => {
+              let lastDateStr = ''; // Untuk menyimpan jejak tanggal terakhir
+
+              return allData.map((r, i) => {
+                const excluded = isExcluded(r);
+
+                // Ekstrak informasi Tanggal dan Jam
+                const rDate = new Date(r.timestamp ?? r.timestamp_start ?? 0);
+                const dateStr = format(rDate, 'yyyy-MM-dd');
+                const displayDate = format(rDate, 'EEEE, dd MMMM yyyy'); // Cth: Monday, 18 May 2026
+                const displayTime = format(rDate, 'HH:mm:ss'); // Cth: 14:30:00
+
+                let dateSeparator = null;
+
+                // Jika tanggal di baris ini beda dengan baris sebelumnya, sisipkan Pemisah!
+                if (dateStr !== lastDateStr) {
+                  dateSeparator = (
+                    <tr key={`header-${dateStr}`} className="bg-slate-900/90 sticky top-[48px] z-10 backdrop-blur-md shadow-md border-y border-slate-700/50">
+                      <td colSpan={6} className="px-6 py-2.5 text-xs font-bold text-blue-400 uppercase tracking-wider">
+                        {displayDate}
+                      </td>
+                    </tr>
+                  );
+                  lastDateStr = dateStr;
+                }
+
+                return (
+                  <React.Fragment key={r.id || i}>
+                    {dateSeparator}
+                    <tr className={`hover:bg-slate-800/40 transition-colors ${excluded ? 'bg-rose-950/20 hover:bg-rose-950/30 opacity-60' : ''}`}>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-300 font-mono text-xs">
+                        {/* Tampilkan jamnya saja karena tanggalnya sudah ada di header atas */}
+                        {r.jam_asli ? r.jam_asli.split(' ')[1] : displayTime}
+                      </td>
+                      <td className="px-6 py-4 text-slate-300 font-medium">{r.unit_id}</td>
+                      <td className="px-6 py-4 text-slate-300">{r.temperature != null ? r.temperature.toFixed(1) : '--'}</td>
+                      <td className="px-6 py-4 text-slate-300">{r.relative_humidity != null ? r.relative_humidity.toFixed(1) : '--'}</td>
+                      <td className="px-6 py-4 text-slate-300">{r.differential_pressure != null ? r.differential_pressure.toFixed(1) : '--'}</td>
+                      <td className="px-6 py-4 text-right flex justify-end gap-2 items-center">
+                        {excluded && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                            <ShieldAlert className="w-3 h-3" />
+                            {t("Excluded")}
+                          </span>
+                        )}
+                        {!excluded && (
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold border tracking-wider
+                            ${r.status === 'normal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                              r.status === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                            {r.status}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                );
+              });
+            })()}
           </tbody>
+
         </table>
       </div>
     </div>

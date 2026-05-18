@@ -28,7 +28,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
     const payload = {
       unit_id: unitId,
       timestamp_start: `${startDate} ${startTime}:00`,
-      timestamp_end:   `${endDate} ${endTime}:00`,
+      timestamp_end: `${endDate} ${endTime}:00`,
       reason,
       excluded_by: 'admin@base44.io',
     };
@@ -92,7 +92,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
           <div>
@@ -101,7 +101,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
 
@@ -112,7 +112,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
           <div>
@@ -121,7 +121,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
         </div>
