@@ -17,8 +17,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   // Filter States
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [reportType, setReportType] = useState('Semua Data'); // Semua Data, Fumigasi, Non-Fumigasi
+  const [reportType, setReportType] = useState('Semua Data');
   const [selectedRoom, setSelectedRoom] = useState('Pilih Ruangan');
+  const [dataInterval, setDataInterval] = useState('raw');
   const [serverReadings, setServerReadings] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
@@ -103,11 +104,39 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         };
       });
 
-      setServerReadings(formatted);
-      if (formatted.length === 0) {
+      // PASTIKAN MENGHAPUS: setServerReadings(formatted); 
+      // DAN GANTI DENGAN KODE DI BAWAH INI:
+
+      // Pastikan urut waktu dari terlama ke terbaru
+      formatted.sort((a, b) => a.timestampValue - b.timestampValue);
+
+      let finalData = formatted;
+      if (dataInterval === '5m') {
+        finalData = [];
+        let lastTime = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (formatted[i].timestampValue - lastTime >= 5 * 60 * 1000) {
+            finalData.push(formatted[i]);
+            lastTime = formatted[i].timestampValue;
+          }
+        }
+      } else if (dataInterval === '1h') {
+        finalData = [];
+        let lastTime = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (formatted[i].timestampValue - lastTime >= 60 * 60 * 1000) {
+            finalData.push(formatted[i]);
+            lastTime = formatted[i].timestampValue;
+          }
+        }
+      }
+
+      setServerReadings(finalData);
+
+      if (finalData.length === 0) {
         toast.error('Tidak ada data ditemukan pada rentang waktu yang dipilih.');
       } else {
-        toast.success(`${formatted.length} data berhasil ditarik!`);
+        toast.success(`${finalData.length} data berhasil ditarik (setelah difilter interval)!`);
       }
     } catch (err) {
       console.error('Failed to fetch report data:', err);
@@ -388,7 +417,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           {t("Filter Config")}
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">{t("Room")}</label>
             <select
@@ -410,7 +439,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
                 type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
               />
             </div>
           </div>
@@ -422,9 +451,22 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
                 type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
               />
             </div>
+          </div>
+          {/* Tambahan Kolom Interval */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Interval Data</label>
+            <select
+              value={dataInterval}
+              onChange={(e) => setDataInterval(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            >
+              <option value="raw">Semua Data (Raw)</option>
+              <option value="5m">Per 5 Menit</option>
+              <option value="1h">Per 1 Jam</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">{t("Report Type")}</label>
