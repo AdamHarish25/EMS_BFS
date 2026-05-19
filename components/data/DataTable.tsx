@@ -16,8 +16,21 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
       if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (reading.unit_id || '').trim()) continue;
       if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
         const reasonStr = exc.reason || '';
-        if (reasonStr.includes('[TAG:Warning/Critical]') && (reading.status === 'normal' || !reading.status)) {
-          continue;
+        if (reasonStr.includes('[TAG:Warning/Critical]')) {
+          const temp = reading.numTemp;
+          const rh = reading.numRH;
+          const dp = reading.dp1 != null ? reading.dp1 : reading.numDP;
+          const dp2 = reading.dp2 != null ? reading.dp2 : null;
+          
+          const isWarningOrCritical = 
+            (temp != null && temp > 24) || 
+            (rh != null && rh > 59) || 
+            (dp != null && dp <= 8) || 
+            (dp2 != null && dp2 <= 8);
+
+          if (!isWarningOrCritical) {
+            continue;
+          }
         }
         return true;
       }

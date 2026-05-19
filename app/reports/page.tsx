@@ -22,8 +22,8 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const getStatus = (temp: number, rh: number, dp: number) => {
-      if (temp > 25 || rh > 60 || dp <= 20) return 'critical';
-      if (temp > 24 || rh > 59 || dp <= 21) return 'warning';
+      if (temp > 25 || rh > 60 || dp <= 5) return 'critical';
+      if (temp > 24 || rh > 59 || dp <= 8) return 'warning';
       return 'normal';
     };
 

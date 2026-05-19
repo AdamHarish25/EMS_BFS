@@ -231,8 +231,21 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (r.unit_id || '').trim()) continue;
         if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
           const reasonStr = exc.reason || '';
-          if (reasonStr.includes('[TAG:Warning/Critical]') && (r.status === 'normal' || !r.status)) {
-            continue;
+          if (reasonStr.includes('[TAG:Warning/Critical]')) {
+            const temp = r.numTemp;
+            const rh = r.numRH;
+            const dp = r.dp1 != null ? r.dp1 : r.numDP;
+            const dp2 = r.dp2 != null ? r.dp2 : null;
+            
+            const isWarningOrCritical = 
+              (temp != null && temp > 24) || 
+              (rh != null && rh > 59) || 
+              (dp != null && dp <= 8) || 
+              (dp2 != null && dp2 <= 8);
+
+            if (!isWarningOrCritical) {
+              continue; // If it's normal, do NOT exclude
+            }
           }
           isExc = true;
           break;
