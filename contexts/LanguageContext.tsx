@@ -12,7 +12,7 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   id: {
     "System Dashboard": "Dasbor Sistem",
-    "Monitor Central AC": "Monitor Central AC berdasarkan rentang waktu yang dipilih.",
+    "Monitor Central AC": "Data real-time ditarik pada pukul ...... (otomatis muncul secara real-time)",
     "Filter Data": "Filter Data",
     "Room": "Ruangan (Unit)",
     "Select Room": "Pilih Ruangan",
@@ -84,7 +84,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   en: {
     "System Dashboard": "System Dashboard",
-    "Monitor Central AC": "Monitor Central AC based on the selected time range.",
+    "Monitor Central AC": "Real-time data is pulled at ...... (automatically appears in real-time)",
     "Filter Data": "Filter Data",
     "Room": "Room (Unit)",
     "Select Room": "Select Room",
@@ -158,7 +158,7 @@ const translations: Record<Language, Record<string, string>> = {
 
 const LanguageContext = createContext<LanguageContextType>({
   lang: 'id',
-  toggleLang: () => {},
+  toggleLang: () => { },
   t: (key) => key
 });
 
