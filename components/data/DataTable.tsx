@@ -4,7 +4,7 @@ import React from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export default function DataTable({ readings, exclusions }: { readings: any[], exclusions: any[] }) {
+export default function DataTable({ readings, exclusions, dataFilter = 'Semua Data' }: { readings: any[], exclusions: any[], dataFilter?: string }) {
   const { t } = useLanguage();
 
   const isExcluded = (reading: any) => {
@@ -17,10 +17,10 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
       if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
         const reasonStr = exc.reason || '';
         if (reasonStr.includes('[TAG:Warning/Critical]')) {
-          const temp = reading.numTemp;
-          const rh = reading.numRH;
-          const dp = reading.dp1 != null ? reading.dp1 : reading.numDP;
-          const dp2 = reading.dp2 != null ? reading.dp2 : null;
+          const temp = reading.temperature != null ? Number(reading.temperature) : null;
+          const rh = reading.relative_humidity != null ? Number(reading.relative_humidity) : null;
+          const dp = reading.dp1 != null ? Number(reading.dp1) : (reading.differential_pressure != null ? Number(reading.differential_pressure) : null);
+          const dp2 = reading.dp2 != null ? Number(reading.dp2) : null;
           
           const isWarningOrCritical = 
             (temp != null && temp > 24) || 
@@ -125,11 +125,19 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
 
     const allData = groupReadings(readings);
 
+    // Lakukan filter di awal agar bisa menghitung jumlah record yang akurat
+    const filteredData = allData.filter(r => {
+      const excluded = isExcluded(r);
+      if (dataFilter === 'Non-Fumigasi' && excluded) return false;
+      if (dataFilter === 'Fumigasi' && !excluded) return false;
+      return true;
+    });
+
     return (
       <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden shadow-xl">
         <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
           <h3 className="font-medium text-slate-200">{t("Raw Telemetry")}</h3>
-          <span className="text-xs font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">{allData.length} {t("Records Shown")}</span>
+          <span className="text-xs font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">{filteredData.length} {t("Records Shown")}</span>
         </div>
         <div className="overflow-x-auto max-h-[800px] custom-scrollbar">
           <table className="w-full text-sm text-left">
@@ -145,10 +153,16 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
-              {(() => {
+              {filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-slate-500 font-medium">
+                    Tidak ada data yang sesuai dengan filter "{dataFilter}".
+                  </td>
+                </tr>
+              ) : (() => {
                 let lastDateStr = ''; // Untuk menyimpan jejak tanggal terakhir
 
-                return allData.map((r, i) => {
+                return filteredData.map((r, i) => {
                   const excluded = isExcluded(r);
 
                   // Ekstrak informasi Tanggal dan Jam

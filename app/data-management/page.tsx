@@ -22,6 +22,7 @@ export default function DataManagementPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [dataInterval, setDataInterval] = useState('raw');
+  const [dataFilter, setDataFilter] = useState('Semua Data');
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
 
@@ -189,7 +190,7 @@ export default function DataManagementPage() {
       {/* FILTER PANEL */}
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
         <h3 className="text-base font-semibold text-slate-200 mb-4">🔍 Filter Data Sensor</h3>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">{t("Room")}</label>
             <select
@@ -232,6 +233,18 @@ export default function DataManagementPage() {
             </select>
           </div>
           <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tipe Data</label>
+            <select
+              value={dataFilter}
+              onChange={(e) => { setDataFilter(e.target.value); setHasFetched(false); }}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
+            >
+              <option value="Semua Data">{t("All Data")}</option>
+              <option value="Non-Fumigasi">Normal (Recorded)</option>
+              <option value="Fumigasi">TMS / Anomali (Excluded)</option>
+            </select>
+          </div>
+          <div>
             <button
               onClick={handleFetchData}
               disabled={isLoading}
@@ -253,7 +266,7 @@ export default function DataManagementPage() {
           <ExclusionList exclusions={exclusions} onDelete={handleDeleteExclusion} />
         </div>
         <div className="lg:col-span-2">
-          <DataTable readings={readings} exclusions={exclusions} />
+          <DataTable readings={readings} exclusions={exclusions} dataFilter={dataFilter} />
         </div>
       </div>
     </div>

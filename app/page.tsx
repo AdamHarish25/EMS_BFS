@@ -10,6 +10,7 @@ const ROOM_LIST = [
 export default function Dashboard() {
   const { t } = useLanguage();
   const [realtimeData, setRealtimeData] = useState<Record<string, any>>({});
+  const [lastFetchTime, setLastFetchTime] = useState<string>('');
 
 
   const getStatus = (temp: number, rh: number, dp: number, dp1?: number | null, dp2?: number | null) => {
@@ -86,6 +87,11 @@ export default function Dashboard() {
         });
 
         setRealtimeData(newRealtimeData);
+        
+        // Simpan waktu penarikan terakhir (jam:menit:detik)
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
+        setLastFetchTime(timeString);
       } catch (err) {
         console.error("Gagal menarik data realtime:", err);
       }
@@ -103,7 +109,9 @@ export default function Dashboard() {
 
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold text-slate-50 tracking-tight">{t("System Dashboard")}</h1>
-        <p className="text-slate-400">{t("Monitor Central AC")}</p>
+        <p className="text-slate-400">
+          {t("Monitor Central AC").replace('......', lastFetchTime ? lastFetchTime : '...')}
+        </p>
       </div>
 
       {/* REAL-TIME ROOMS GRID */}

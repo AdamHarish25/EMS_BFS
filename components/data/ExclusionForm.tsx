@@ -145,7 +145,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="Semua">Semua Status (Normal + Warning/Critical)</option>
-              <option value="Warning/Critical">Hanya Data Warning / Critical</option>
+              <option value="Warning/Critical">Hanya Data TMS</option>
             </select>
           </div>
         </div>
