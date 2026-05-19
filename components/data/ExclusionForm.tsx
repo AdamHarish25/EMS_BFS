@@ -15,6 +15,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
   const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
   const [reason, setReason] = useState('');
+  const [statusTag, setStatusTag] = useState('Semua');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,7 +30,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
       unit_id: unitId,
       timestamp_start: `${startDate} ${startTime}:00`,
       timestamp_end: `${endDate} ${endTime}:00`,
-      reason,
+      reason: `[TAG:${statusTag}] ${reason}`,
       excluded_by: 'admin@base44.io',
     };
 
@@ -125,15 +126,28 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             />
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">{t("Reason")}</label>
-          <textarea
-            rows={3}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
-            placeholder={t("Reason Placeholder")}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1">{t("Reason")}</label>
+            <textarea
+              rows={3}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
+              placeholder={t("Reason Placeholder")}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Target Data (Status)</label>
+            <select
+              value={statusTag}
+              onChange={(e) => setStatusTag(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            >
+              <option value="Semua">Semua Status (Normal + Warning/Critical)</option>
+              <option value="Warning/Critical">Hanya Data Warning / Critical</option>
+            </select>
+          </div>
         </div>
         <button
           type="submit"

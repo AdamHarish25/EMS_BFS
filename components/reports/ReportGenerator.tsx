@@ -230,6 +230,10 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         const exc = parsedExclusions[j];
         if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (r.unit_id || '').trim()) continue;
         if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
+          const reasonStr = exc.reason || '';
+          if (reasonStr.includes('[TAG:Warning/Critical]') && (r.status === 'normal' || !r.status)) {
+            continue;
+          }
           isExc = true;
           break;
         }

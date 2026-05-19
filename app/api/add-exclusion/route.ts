@@ -27,6 +27,11 @@ export async function POST(req: Request) {
     const endEpoch = new Date(timestamp_end).getTime();
     console.log('[DEBUG add-exclusion] JS calculated Epochs:', { startEpoch, endEpoch });
 
+    const isWarningOnly = reason.includes('[TAG:Warning/Critical]');
+    const statusFilterQuery = isWarningOnly 
+      ? `AND (temperature > 24 OR relative_humidity > 59 OR differential_pressure <= 8)`
+      : '';
+
     // Karena user ingin memindahkan data sensor secara UTUH (termasuk temp, hum, press),
     // Kita lakukan INSERT ke Fumigasi dengan mengambil data dari Sensor pada rentang waktu tersebut.
     const query = `
@@ -38,6 +43,7 @@ export async function POST(req: Request) {
       WHERE unit_id = $5 
         AND "timestamp" >= EXTRACT(EPOCH FROM $1::timestamp AT TIME ZONE 'Asia/Jakarta')
         AND "timestamp" <= EXTRACT(EPOCH FROM $2::timestamp AT TIME ZONE 'Asia/Jakarta')
+        ${statusFilterQuery}
       RETURNING *
     `;
     

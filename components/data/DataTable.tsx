@@ -11,11 +11,16 @@ export default function DataTable({ readings, exclusions }: { readings: any[], e
     const readingTime = reading.timestampValue;
     if (!readingTime) return false; // Fallback jika tidak ada timestampValue
 
-    // Looping klasik jauh lebih cepat daripada .some() untuk puluhan ribu data
     for (let i = 0; i < exclusions.length; i++) {
       const exc = exclusions[i];
       if ((exc.unit_id || '').trim() !== 'All Units' && (exc.unit_id || '').trim() !== (reading.unit_id || '').trim()) continue;
-      if (readingTime >= exc.startTime && readingTime <= exc.endTime) return true;
+      if (readingTime >= exc.startTime && readingTime <= exc.endTime) {
+        const reasonStr = exc.reason || '';
+        if (reasonStr.includes('[TAG:Warning/Critical]') && (reading.status === 'normal' || !reading.status)) {
+          continue;
+        }
+        return true;
+      }
     }
     return false;
   };
