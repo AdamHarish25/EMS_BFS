@@ -44,7 +44,7 @@ export default function Sidebar() {
     <div className="flex flex-col h-full py-6 px-4">
       <div className="flex items-center gap-3 px-2 mb-8 text-blue-400">
         <Activity className="w-8 h-8" />
-        <span className="text-xl font-bold text-slate-100 tracking-tight">AHU Monitoring EMS BMS</span>
+        <span className="text-xl font-bold text-slate-100 tracking-tight">AHU Monitoring EMS BFS</span>
       </div>
 
       <nav className="flex-1 space-y-2">
