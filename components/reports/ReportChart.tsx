@@ -6,6 +6,8 @@ type Reading = {
   temperature: number;
   relative_humidity: number;
   differential_pressure: number;
+  dp1?: number | null;
+  dp2?: number | null;
 };
 
 const chartCommonProps = {
@@ -22,7 +24,7 @@ const CustomDot = (props: any) => {
   let isAlert = false;
   if (dataKey === 'temperature') isAlert = value >= 24;
   if (dataKey === 'relative_humidity') isAlert = value >= 59;
-  if (dataKey === 'differential_pressure') isAlert = value <= 8;
+  if (dataKey === 'differential_pressure' || dataKey === 'dp2') isAlert = value <= 8;
 
   if (isAlert) {
     return (
@@ -43,9 +45,12 @@ function MetricChart({
   unit: string;
   color: string;
   data: any[];
-  dataKey: 'temperature' | 'relative_humidity' | 'differential_pressure';
+  dataKey: 'temperature' | 'relative_humidity' | 'differential_pressure' | 'dp2';
 }) {
-  const values = data.map(d => Number(d[dataKey]));
+  const values = data
+    .filter(d => d[dataKey] !== null && d[dataKey] !== undefined)
+    .map(d => Number(d[dataKey]))
+    .filter(v => !isNaN(v) && v !== 0);
   const minVal = values.length ? Math.min(...values) : 0;
   const maxVal = values.length ? Math.max(...values) : 0;
 
@@ -65,7 +70,7 @@ function MetricChart({
     yMin = Math.min(minVal - 2, 50);
     yMax = Math.max(maxVal + 2, 65);
     isGreater = true;
-  } else if (dataKey === 'differential_pressure') {
+  } else if (dataKey === 'differential_pressure' || dataKey === 'dp2') {
     threshold = 8;
     yMin = Math.min(minVal - 2, 0);
     yMax = Math.max(maxVal + 2, 12);
@@ -140,11 +145,15 @@ export default function ReportChart({
       time: format(new Date(r.timestamp), 'HH:mm'),
       temperature: Number(r.temperature),
       relative_humidity: Number(r.relative_humidity),
-      differential_pressure: Number(r.differential_pressure),
+      differential_pressure: r.dp1 != null ? Number(r.dp1) : Number(r.differential_pressure),
+      dp2: r.dp2 != null ? Number(r.dp2) : null,
     }));
 
   const validData = toMetricData(validReadings);
   const excludedData = toMetricData(excludedReadings);
+
+  const hasDp2Valid = validData.some(d => d.dp2 !== null);
+  const hasDp2Excluded = excludedData.some(d => d.dp2 !== null);
 
   return (
     <div className="w-full h-auto overflow-x-auto overflow-y-hidden custom-scrollbar pb-4">
@@ -154,7 +163,10 @@ export default function ReportChart({
           <div className="grid grid-cols-2 gap-3">
             <MetricChart title="Temperature" unit="°C" color="#3b82f6" data={validData} dataKey="temperature" />
             <MetricChart title="Relative Humidity" unit="%" color="#3b82f6" data={validData} dataKey="relative_humidity" />
-            <MetricChart title="Differential Pressure" unit="Pa" color="#3b82f6" data={validData} dataKey="differential_pressure" />
+            <MetricChart title={hasDp2Valid ? "DP 1" : "Differential Pressure"} unit="Pa" color="#3b82f6" data={validData} dataKey="differential_pressure" />
+            {hasDp2Valid && (
+              <MetricChart title="DP 2" unit="Pa" color="#3b82f6" data={validData} dataKey="dp2" />
+            )}
           </div>
         </div>
 
@@ -163,7 +175,10 @@ export default function ReportChart({
           <div className="grid grid-cols-2 gap-3">
             <MetricChart title="Temperature" unit="°C" color="#3b82f6" data={excludedData} dataKey="temperature" />
             <MetricChart title="Relative Humidity" unit="%" color="#3b82f6" data={excludedData} dataKey="relative_humidity" />
-            <MetricChart title="Differential Pressure" unit="Pa" color="#3b82f6" data={excludedData} dataKey="differential_pressure" />
+            <MetricChart title={hasDp2Excluded ? "DP 1" : "Differential Pressure"} unit="Pa" color="#3b82f6" data={excludedData} dataKey="differential_pressure" />
+            {hasDp2Excluded && (
+              <MetricChart title="DP 2" unit="Pa" color="#3b82f6" data={excludedData} dataKey="dp2" />
+            )}
           </div>
         </div>
       </div>

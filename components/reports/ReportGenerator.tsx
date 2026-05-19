@@ -25,8 +25,18 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
   const uniqueRooms = React.useMemo(() => {
     const allRooms = [
-      ...readings.map(r => (r.unit_id || '').trim()),
-      ...exclusions.map(e => (e.unit_id || '').trim())
+      ...readings.map(r => {
+        let room = (r.unit_id || '').trim();
+        if (room.endsWith('- DP 1')) return room.replace(' - DP 1', '');
+        if (room.endsWith('- DP 2')) return room.replace(' - DP 2', '');
+        return room;
+      }),
+      ...exclusions.map(e => {
+        let room = (e.unit_id || '').trim();
+        if (room.endsWith('- DP 1')) return room.replace(' - DP 1', '');
+        if (room.endsWith('- DP 2')) return room.replace(' - DP 2', '');
+        return room;
+      })
     ];
     const rooms = Array.from(new Set(allRooms));
     return rooms.filter(Boolean).sort();
@@ -110,23 +120,78 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       // Pastikan urut waktu dari terlama ke terbaru
       formatted.sort((a, b) => a.timestampValue - b.timestampValue);
 
-      let finalData = formatted;
+      const groupReadings = (raw: any[]) => {
+        const map = new Map<string, any>();
+        const results: any[] = [];
+        for (let i = 0; i < raw.length; i++) {
+          const r = raw[i];
+          const rawUnit = (r.unit_id || '').trim();
+          let baseUnit = rawUnit;
+          let isDp1 = false;
+          let isDp2 = false;
+
+          if (rawUnit.endsWith('- DP 1')) {
+            baseUnit = rawUnit.replace(' - DP 1', '');
+            isDp1 = true;
+          } else if (rawUnit.endsWith('- DP 2')) {
+            baseUnit = rawUnit.replace(' - DP 2', '');
+            isDp2 = true;
+          }
+
+          const key = `${r.timestampValue}_${baseUnit}`;
+          let existing = map.get(key);
+          if (!existing) {
+            existing = { ...r, unit_id: baseUnit, dp1: null, dp2: null };
+            if (isDp1 || isDp2) {
+              existing.numTemp = null;
+              existing.numRH = null;
+              existing.numDP = null;
+              existing.temperature = null;
+              existing.relative_humidity = null;
+              existing.differential_pressure = null;
+            }
+            map.set(key, existing);
+            results.push(existing);
+          }
+
+          if (isDp1) {
+            existing.dp1 = r.numDP ?? toNumeric(r.differential_pressure);
+            if (r.status !== 'normal' && existing.status === 'normal') existing.status = r.status;
+          } else if (isDp2) {
+            existing.dp2 = r.numDP ?? toNumeric(r.differential_pressure);
+            if (r.status !== 'normal' && existing.status === 'normal') existing.status = r.status;
+          } else {
+            existing.numTemp = r.numTemp;
+            existing.numRH = r.numRH;
+            existing.numDP = r.numDP;
+            existing.temperature = r.temperature;
+            existing.relative_humidity = r.relative_humidity;
+            existing.differential_pressure = r.differential_pressure;
+            if (r.status !== 'normal' || !existing.status) existing.status = r.status;
+          }
+        }
+        return results;
+      };
+
+      const groupedData = groupReadings(formatted);
+
+      let finalData = groupedData;
       if (dataInterval === '5m') {
         finalData = [];
         let lastTime = 0;
-        for (let i = 0; i < formatted.length; i++) {
-          if (formatted[i].timestampValue - lastTime >= 5 * 60 * 1000) {
-            finalData.push(formatted[i]);
-            lastTime = formatted[i].timestampValue;
+        for (let i = 0; i < groupedData.length; i++) {
+          if (groupedData[i].timestampValue - lastTime >= 5 * 60 * 1000) {
+            finalData.push(groupedData[i]);
+            lastTime = groupedData[i].timestampValue;
           }
         }
       } else if (dataInterval === '1h') {
         finalData = [];
         let lastTime = 0;
-        for (let i = 0; i < formatted.length; i++) {
-          if (formatted[i].timestampValue - lastTime >= 60 * 60 * 1000) {
-            finalData.push(formatted[i]);
-            lastTime = formatted[i].timestampValue;
+        for (let i = 0; i < groupedData.length; i++) {
+          if (groupedData[i].timestampValue - lastTime >= 60 * 60 * 1000) {
+            finalData.push(groupedData[i]);
+            lastTime = groupedData[i].timestampValue;
           }
         }
       }
@@ -147,6 +212,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   };
 
   const dateFilteredReadings = serverReadings;
+
+
 
   // 2. Separate data based on exclusions
   const { validReadings, excludedReadings } = useMemo(() => {
@@ -187,11 +254,15 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   };
 
   const calculateStats = (dataset: any[]) => {
-    if (dataset.length === 0) return { minTemp: null, maxTemp: null, minRH: null, maxRH: null, minDP: null, maxDP: null };
+    if (dataset.length === 0) return { minTemp: null, maxTemp: null, minRH: null, maxRH: null, minDP: null, maxDP: null, minDP1: null, maxDP1: null, minDP2: null, maxDP2: null, hasDp1: false, hasDp2: false };
 
     let minT: number | null = null, maxT: number | null = null;
     let minR: number | null = null, maxR: number | null = null;
     let minD: number | null = null, maxD: number | null = null;
+    let minD1: number | null = null, maxD1: number | null = null;
+    let minD2: number | null = null, maxD2: number | null = null;
+    let hasDp1 = false;
+    let hasDp2 = false;
 
     for (let i = 0; i < dataset.length; i++) {
       const r = dataset[i];
@@ -208,13 +279,27 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         minR = minR === null ? rh : Math.min(minR, rh);
         maxR = maxR === null ? rh : Math.max(maxR, rh);
       }
-      if (dp !== null) {
+
+      const hasSubDp = (r.dp1 !== undefined && r.dp1 !== null) || (r.dp2 !== undefined && r.dp2 !== null);
+      
+      if (hasSubDp) {
+        if (r.dp1 !== undefined && r.dp1 !== null) {
+          minD1 = minD1 === null ? r.dp1 : Math.min(minD1, r.dp1);
+          maxD1 = maxD1 === null ? r.dp1 : Math.max(maxD1, r.dp1);
+          hasDp1 = true;
+        }
+        if (r.dp2 !== undefined && r.dp2 !== null) {
+          minD2 = minD2 === null ? r.dp2 : Math.min(minD2, r.dp2);
+          maxD2 = maxD2 === null ? r.dp2 : Math.max(maxD2, r.dp2);
+          hasDp2 = true;
+        }
+      } else if (dp !== null) {
         minD = minD === null ? dp : Math.min(minD, dp);
         maxD = maxD === null ? dp : Math.max(maxD, dp);
       }
     }
 
-    return { minTemp: minT, maxTemp: maxT, minRH: minR, maxRH: maxR, minDP: minD, maxDP: maxD };
+    return { minTemp: minT, maxTemp: maxT, minRH: minR, maxRH: maxR, minDP: minD, maxDP: maxD, minDP1: minD1, maxDP1: maxD1, minDP2: minD2, maxDP2: maxD2, hasDp1, hasDp2 };
   };
 
 
@@ -271,17 +356,57 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           r.unit_id,
           formatCellNumber(r.temperature),
           formatCellNumber(r.relative_humidity),
-          formatCellNumber(r.differential_pressure),
-          r.status
+          (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
+          r.dp2 != null ? formatCellNumber(r.dp2) : '-',
+          'Recorded'
         ]);
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'DP (Pa)', 'Status']],
+          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'DP 1 / DP', 'DP 2 (Pa)', 'Status']],
           body: validRows,
           theme: 'striped',
           headStyles: { fillColor: [59, 130, 246] },
           styles: { fontSize: 8 },
+          didParseCell: (data) => {
+            if (data.section === 'body') {
+              const rowIndex = data.row.index;
+              const r = validReadings[rowIndex];
+              const temp = Number(r.temperature);
+              const rh = Number(r.relative_humidity);
+              const dp = r.dp1 != null ? Number(r.dp1) : Number(r.differential_pressure);
+              const dp2 = r.dp2 != null ? Number(r.dp2) : null;
+              
+              const applyWarning = () => {
+                data.cell.styles.fillColor = [254, 243, 199]; // amber-100
+                data.cell.styles.textColor = [180, 83, 9];    // amber-700
+                data.cell.styles.fontStyle = 'bold';
+              };
+
+              const applyCritical = () => {
+                data.cell.styles.fillColor = [254, 226, 226]; // red-100
+                data.cell.styles.textColor = [153, 27, 27];   // red-800
+                data.cell.styles.fontStyle = 'bold';
+              };
+
+              if (data.column.index === 2) {
+                if (temp > 25) applyCritical();
+                else if (temp > 24) applyWarning();
+              }
+              if (data.column.index === 3) {
+                if (rh > 60) applyCritical();
+                else if (rh > 59) applyWarning();
+              }
+              if (data.column.index === 4) {
+                if (dp <= 5) applyCritical();
+                else if (dp <= 8) applyWarning();
+              }
+              if (data.column.index === 5 && dp2 != null) {
+                if (dp2 <= 5) applyCritical();
+                else if (dp2 <= 8) applyWarning();
+              }
+            }
+          }
         });
 
         finalY = (pdf as any).lastAutoTable.finalY + 15;
@@ -301,13 +426,14 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           r.unit_id,
           formatCellNumber(r.temperature),
           formatCellNumber(r.relative_humidity),
-          formatCellNumber(r.differential_pressure),
-          r.status
+          (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
+          r.dp2 != null ? formatCellNumber(r.dp2) : '-',
+          'Excluded'
         ]);
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'DP (Pa)', 'Status']],
+          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'DP 1 / DP', 'DP 2 (Pa)', 'Status']],
           body: excludedRows,
           theme: 'striped',
           headStyles: { fillColor: [239, 68, 68] },
@@ -318,14 +444,36 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               const r = excludedReadings[rowIndex];
               const temp = Number(r.temperature);
               const rh = Number(r.relative_humidity);
-              const dp = Number(r.differential_pressure);
-              
-              // Cek threshold alert
-              const isWarning = temp >= 24 || rh >= 59 || dp <= 8;
-              if (isWarning) {
-                // Background merah muda pudar, teks merah gelap agar tetap terbaca jelas
+              const dp = r.dp1 != null ? Number(r.dp1) : Number(r.differential_pressure);
+              const dp2 = r.dp2 != null ? Number(r.dp2) : null;
+
+              const applyWarning = () => {
+                data.cell.styles.fillColor = [254, 243, 199]; // amber-100
+                data.cell.styles.textColor = [180, 83, 9];    // amber-700
+                data.cell.styles.fontStyle = 'bold';
+              };
+
+              const applyCritical = () => {
                 data.cell.styles.fillColor = [254, 226, 226]; // red-100
                 data.cell.styles.textColor = [153, 27, 27];   // red-800
+                data.cell.styles.fontStyle = 'bold';
+              };
+
+              if (data.column.index === 2) {
+                if (temp > 25) applyCritical();
+                else if (temp > 24) applyWarning();
+              }
+              if (data.column.index === 3) {
+                if (rh > 60) applyCritical();
+                else if (rh > 59) applyWarning();
+              }
+              if (data.column.index === 4) {
+                if (dp <= 5) applyCritical();
+                else if (dp <= 8) applyWarning();
+              }
+              if (data.column.index === 5 && dp2 != null) {
+                if (dp2 <= 5) applyCritical();
+                else if (dp2 <= 8) applyWarning();
               }
             }
           }
@@ -354,8 +502,21 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           finalY += 6;
           pdf.text(`Non-Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(validStats.minRH, '%')} | Max = ${formatSummaryNumber(validStats.maxRH, '%')}`, 14, finalY);
           finalY += 6;
-          pdf.text(`Non-Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(validStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP, 'Pa')}`, 14, finalY);
-          finalY += 8;
+          
+          if (validStats.hasDp1 || validStats.hasDp2) {
+            if (validStats.hasDp1) {
+              pdf.text(`Non-Fumigasi - DP 1: Min = ${formatSummaryNumber(validStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP1, 'Pa')}`, 14, finalY);
+              finalY += 6;
+            }
+            if (validStats.hasDp2) {
+              pdf.text(`Non-Fumigasi - DP 2: Min = ${formatSummaryNumber(validStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP2, 'Pa')}`, 14, finalY);
+              finalY += 6;
+            }
+          } else {
+            pdf.text(`Non-Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(validStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP, 'Pa')}`, 14, finalY);
+            finalY += 6;
+          }
+          finalY += 2;
         } else {
           pdf.text('Non-Fumigasi: Tidak ada data pada tabel.', 14, finalY);
           finalY += 8;
@@ -367,8 +528,21 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           finalY += 6;
           pdf.text(`Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(excludedStats.minRH, '%')} | Max = ${formatSummaryNumber(excludedStats.maxRH, '%')}`, 14, finalY);
           finalY += 6;
-          pdf.text(`Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(excludedStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP, 'Pa')}`, 14, finalY);
-          finalY += 8;
+          
+          if (excludedStats.hasDp1 || excludedStats.hasDp2) {
+            if (excludedStats.hasDp1) {
+              pdf.text(`Fumigasi - DP 1: Min = ${formatSummaryNumber(excludedStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP1, 'Pa')}`, 14, finalY);
+              finalY += 6;
+            }
+            if (excludedStats.hasDp2) {
+              pdf.text(`Fumigasi - DP 2: Min = ${formatSummaryNumber(excludedStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP2, 'Pa')}`, 14, finalY);
+              finalY += 6;
+            }
+          } else {
+            pdf.text(`Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(excludedStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP, 'Pa')}`, 14, finalY);
+            finalY += 6;
+          }
+          finalY += 2;
         } else {
           pdf.text('Fumigasi: Tidak ada data pada tabel.', 14, finalY);
           finalY += 8;
@@ -377,35 +551,35 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       finalY += 2;
 
       // Limit Formulas
-      const limitTexts = [
-        "Parameter DP, RH, TT",
-        "",
-        "TT (Temperature) =",
-        "- Alert Limit = Maksimum 24 C / Maksimum 22 C (Area Kemas kelas D NBL Sterile 39)",
-        "- Action Limit = Maksimum 25 C",
-        "",
-        "RH (Relative Humidity) =",
-        "- Alert Limit = Maksimum 65 % / Maksimum 59 % (untuk kelas D Cepha, EyeDrop, dan NBL Steril (37,39,RTF))",
-        "  / Maksimum 53% (Area Kemas Kelas D NBL Sterile 39)",
-        "- Action Limit = Maksimum 70 % / Maksimum 60 % (untuk kelas D Cepha, EyeDrop, dan NBL Steril (37,39,RTF))",
-        "",
-        "DP (Differential Pressure) =",
-        "- Satu Grade: Alert 6 Pa; Action: 5 Pa (Coret salah satu) / Alert 8 Pa;",
-        "  Action 5 Pa (Area Kemas kelas D NBL Sterile 39)",
-        "- Beda 1 Grade: Alert: 11 Pa; Action: 10 Pa (Coret salah satu)",
-        "- Beda 2 Grade atau lebih: Alert: 21 Pa; Action: 20 Pa (Coret salah satu)"
-      ];
+      // const limitTexts = [
+      //   "Parameter DP, RH, TT",
+      //   "",
+      //   "TT (Temperature) =",
+      //   "- Alert Limit = Maksimum 24 C / Maksimum 22 C (Area Kemas kelas D NBL Sterile 39)",
+      //   "- Action Limit = Maksimum 25 C",
+      //   "",
+      //   "RH (Relative Humidity) =",
+      //   "- Alert Limit = Maksimum 65 % / Maksimum 59 % (untuk kelas D Cepha, EyeDrop, dan NBL Steril (37,39,RTF))",
+      //   "  / Maksimum 53% (Area Kemas Kelas D NBL Sterile 39)",
+      //   "- Action Limit = Maksimum 70 % / Maksimum 60 % (untuk kelas D Cepha, EyeDrop, dan NBL Steril (37,39,RTF))",
+      //   "",
+      //   "DP (Differential Pressure) =",
+      //   "- Satu Grade: Alert 6 Pa; Action: 5 Pa (Coret salah satu) / Alert 8 Pa;",
+      //   "  Action 5 Pa (Area Kemas kelas D NBL Sterile 39)",
+      //   "- Beda 1 Grade: Alert: 11 Pa; Action: 10 Pa (Coret salah satu)",
+      //   "- Beda 2 Grade atau lebih: Alert: 21 Pa; Action: 20 Pa (Coret salah satu)"
+      // ];
 
       pdf.setFontSize(9);
       pdf.setTextColor(80);
-      limitTexts.forEach(line => {
-        if (finalY > 280) {
-          pdf.addPage();
-          finalY = 20;
-        }
-        pdf.text(line, 14, finalY);
-        finalY += 5;
-      });
+      // limitTexts.forEach(line => {
+      //   if (finalY > 280) {
+      //     pdf.addPage();
+      //     finalY = 20;
+      //   }
+      //   pdf.text(line, 14, finalY);
+      //   finalY += 5;
+      // });
 
       pdf.save(`AC-Report-${format(new Date(), 'yyyyMMdd-HHmm')}.pdf`);
     } catch (error) {

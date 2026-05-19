@@ -12,9 +12,23 @@ export default function Dashboard() {
   const [realtimeData, setRealtimeData] = useState<Record<string, any>>({});
 
 
-  const getStatus = (temp: number, rh: number, dp: number) => {
-    if (temp > 25 || rh > 60 || dp <= 5) return 'critical';
-    if (temp > 24 || rh > 59 || dp <= 8) return 'warning';
+  const getStatus = (temp: number, rh: number, dp: number, dp1?: number | null, dp2?: number | null) => {
+    let isCritical = false;
+    let isWarning = false;
+
+    if (temp > 25 || rh > 60) isCritical = true;
+    else if (temp > 24 || rh > 59) isWarning = true;
+
+    if (dp1 !== undefined && dp1 !== null && dp2 !== undefined && dp2 !== null) {
+      if (dp1 <= 5 || dp2 <= 5) isCritical = true;
+      else if (dp1 <= 8 || dp2 <= 8) isWarning = true;
+    } else if (dp !== undefined && dp !== null) {
+      if (dp <= 5) isCritical = true;
+      else if (dp <= 8) isWarning = true;
+    }
+
+    if (isCritical) return 'critical';
+    if (isWarning) return 'warning';
     return 'normal';
   };
 
@@ -27,12 +41,36 @@ export default function Dashboard() {
         // Melakukan fetch ke semua ruangan secara bersamaan menggunakan Promise.all
         const promises = ROOM_LIST.map(async (roomName) => {
           const res = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(roomName)}`);
+          let data = null;
           if (res.ok) {
-            const data = await res.json();
-            if (data) {
-              const status = getStatus(data.temperature, data.relative_humidity, data.differential_pressure);
-              return { room: roomName, data: { ...data, status } };
+            data = await res.json();
+          }
+
+          let dp1 = null;
+          let dp2 = null;
+
+          if (roomName === 'Filling' || roomName === 'Transfer Plastic Moulding') {
+            const resDp1 = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(roomName + ' - DP 1')}`);
+            if (resDp1.ok) {
+              const dp1Data = await resDp1.json();
+              dp1 = dp1Data?.differential_pressure ?? null;
             }
+
+            const resDp2 = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(roomName + ' - DP 2')}`);
+            if (resDp2.ok) {
+              const dp2Data = await resDp2.json();
+              dp2 = dp2Data?.differential_pressure ?? null;
+            }
+
+            if (data) {
+              data.dp1 = dp1;
+              data.dp2 = dp2;
+            }
+          }
+
+          if (data) {
+            const status = getStatus(data.temperature, data.relative_humidity, data.differential_pressure, data.dp1, data.dp2);
+            return { room: roomName, data: { ...data, status } };
           }
           return { room: roomName, data: null };
         });
@@ -138,15 +176,38 @@ export default function Dashboard() {
                 </div>
 
                 {/* Differential Pressure */}
-                <div className="flex items-center justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
-                  <div className="flex items-center gap-3 text-slate-400">
-                    <Wind className="w-5 h-5 text-teal-400" />
-                    <span className="text-sm font-medium">Diff. Pressure</span>
+                {data?.dp1 !== undefined && data?.dp2 !== undefined ? (
+                  <div className="flex gap-3">
+                    <div className="flex-1 flex flex-col justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+                      <div className="flex items-center gap-2 text-slate-400 mb-2">
+                        <Wind className="w-4 h-4 text-teal-400" />
+                        <span className="text-xs font-medium">DP 1</span>
+                      </div>
+                      <div className="text-lg font-bold text-slate-100">
+                        {data.dp1 !== null ? data.dp1.toFixed(1) : '--'} <span className="text-xs text-slate-500 font-normal">Pa</span>
+                      </div>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+                      <div className="flex items-center gap-2 text-slate-400 mb-2">
+                        <Wind className="w-4 h-4 text-teal-400" />
+                        <span className="text-xs font-medium">DP 2</span>
+                      </div>
+                      <div className="text-lg font-bold text-slate-100">
+                        {data.dp2 !== null ? data.dp2.toFixed(1) : '--'} <span className="text-xs text-slate-500 font-normal">Pa</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xl font-bold text-slate-100">
-                    {data?.differential_pressure ? data.differential_pressure.toFixed(1) : '--'} <span className="text-sm text-slate-500 font-normal">Pa</span>
+                ) : (
+                  <div className="flex items-center justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+                    <div className="flex items-center gap-3 text-slate-400">
+                      <Wind className="w-5 h-5 text-teal-400" />
+                      <span className="text-sm font-medium">Diff. Pressure</span>
+                    </div>
+                    <div className="text-xl font-bold text-slate-100">
+                      {data?.differential_pressure !== undefined && data?.differential_pressure !== null ? data.differential_pressure.toFixed(1) : '--'} <span className="text-sm text-slate-500 font-normal">Pa</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           );
