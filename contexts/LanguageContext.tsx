@@ -12,7 +12,7 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   id: {
     "System Dashboard": "Dasbor Sistem",
-    "Monitor Central AC": "Data real-time ditarik pada pukul ...... (otomatis muncul secara real-time)",
+    "Monitor Central AC": "Data real-time ditarik pada pukul ...... ",
     "Filter Data": "Filter Data",
     "Room": "Ruangan (Unit)",
     "Select Room": "Pilih Ruangan",
@@ -84,7 +84,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   en: {
     "System Dashboard": "System Dashboard",
-    "Monitor Central AC": "Real-time data is pulled at ...... (automatically appears in real-time)",
+    "Monitor Central AC": "Real-time data is pulled at ...... ",
     "Filter Data": "Filter Data",
     "Room": "Room (Unit)",
     "Select Room": "Select Room",

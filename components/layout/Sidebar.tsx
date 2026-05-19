@@ -44,7 +44,7 @@ export default function Sidebar() {
     <div className="flex flex-col h-full py-6 px-4">
       <div className="flex items-center gap-3 px-2 mb-8 text-blue-400">
         <Activity className="w-8 h-8" />
-        <span className="text-xl font-bold text-slate-100 tracking-tight">AC Monitor</span>
+        <span className="text-xl font-bold text-slate-100 tracking-tight">AHU Monitoring EMS BMS</span>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -56,8 +56,8 @@ export default function Sidebar() {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
-                isActive 
-                  ? "bg-blue-600/10 text-blue-400 font-medium" 
+                isActive
+                  ? "bg-blue-600/10 text-blue-400 font-medium"
                   : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
               )}
             >
