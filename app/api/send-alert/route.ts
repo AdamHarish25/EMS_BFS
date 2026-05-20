@@ -32,15 +32,15 @@ export async function POST(req: Request) {
 
     // Daftar penerima
     const daftarPenerima = [
-      "andi.riwanto@dankosfarma.com",
-      "Wayan.Yudhistira@dankosfarma.com",
-      "Eugenius.Wirawan@dankosfarma.com",
-      "Chatrin.yusuf@dankosfarma.com",
-      "Rabulas.Nugroho@dankosfarma.com",
-      "dhani.putra@dankosfarma.com",
-      "seraf.oryzanandi@dankosfarma.com",
-      "anton.hermansyah@dankosfarma.com",
-      "nebulizereyedrop@gmail.com"
+      // "andi.riwanto@dankosfarma.com",
+      // "Wayan.Yudhistira@dankosfarma.com",
+      // "Eugenius.Wirawan@dankosfarma.com",
+      // "Chatrin.yusuf@dankosfarma.com",
+      // "Rabulas.Nugroho@dankosfarma.com",
+      // "dhani.putra@dankosfarma.com",
+      // "seraf.oryzanandi@dankosfarma.com",
+      // "anton.hermansyah@dankosfarma.com",
+      // "nebulizereyedrop@gmail.com"
     ].join(', ');
 
 
