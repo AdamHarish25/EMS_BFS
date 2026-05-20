@@ -8,9 +8,10 @@
 ## Daftar Isi
 1. [Sesi 1 — Stabilisasi Data Exclusion Pipeline](#sesi-1)
 2. [Sesi 2 — Perbaikan Report, Performance & Security](#sesi-2)
-3. [Ringkasan File yang Dimodifikasi](#file-dimodifikasi)
-4. [Struktur ENV](#env)
-5. [Arsitektur Data Flow](#arsitektur)
+3. [Sesi 3 — Dashboard Real-Time & Notifikasi Email](#sesi-3)
+4. [Ringkasan File yang Dimodifikasi](#file-dimodifikasi)
+5. [Struktur ENV](#env)
+6. [Arsitektur Data Flow](#arsitektur)
 
 ---
 
@@ -272,7 +273,7 @@ DB_USER=appuser
 DB_PASSWORD=appuser
 
 # Node-RED
-NEXT_PUBLIC_NODE_RED_URL=http://10.165.40.127:1880
+NEXT_PUBLIC_NODE_RED_URL=http://10.165.40.13:1880
 ```
 
 > **Konvensi Next.js:**
@@ -283,6 +284,49 @@ NEXT_PUBLIC_NODE_RED_URL=http://10.165.40.127:1880
 - `lib/db.ts` — semua kredensial → `process.env.DB_*`
 - `app/data-management/page.tsx` — URL Node-RED → `process.env.NEXT_PUBLIC_NODE_RED_URL`
 - `components/data/ExclusionForm.tsx` — URL Node-RED → `process.env.NEXT_PUBLIC_NODE_RED_URL`
+
+---
+
+## Sesi 3 — Dashboard Real-Time & Notifikasi Email
+
+### 3.1 — Indikator Visual Data TMS / Fumigasi
+**Masalah:** User kesulitan membedakan mana data yang valid dan mana yang sedang di-exclude (Fumigasi / TMS) pada tabel manajemen data.
+**Solusi:** 
+- Menambahkan filter dropdown "Tipe Data" (Semua Data, Non-Fumigasi, Fumigasi) di `Data Management`. 
+- Menambahkan UI Badge "TMS Only" dan "Semua Status" pada `ExclusionList` untuk mempermudah visualisasi list pengecualian.
+
+**File yang diubah:**
+- `app/data-management/page.tsx`
+- `components/data/DataTable.tsx`
+- `components/data/ExclusionList.tsx`
+
+---
+
+### 3.2 — Indikator Waktu Fetch Real-Time
+**Masalah:** Dashboard tidak menampilkan kapan terakhir kali data berhasil ditarik secara real-time.
+**Solusi:** Menambahkan tracking `lastFetchTime` di dalam *polling* dashboard (6 menit sekali), dan menampilkannya langsung di *subtitle header* "(Data ditampilkan terakhir pada pukul ...)".
+
+**File yang diubah:**
+- `app/page.tsx`
+- `contexts/LanguageContext.tsx`
+
+---
+
+### 3.3 — Sistem Notifikasi Email (Node-RED & Next.js)
+**Masalah:** Tidak ada peringatan otomatis ketika parameter suhu, kelembapan, atau tekanan melanggar batas yang ditentukan (kriteria TMS).
+**Solusi:** 
+- Mengimplementasikan *flow* peringatan di **Node-RED** yang melakukan *polling* ke PostgreSQL (mengambil data 6 menit terakhir).
+- Membuat *Function node* JavaScript yang mengevaluasi anomali dan menyusun payload email khusus untuk *node* `node-red-contrib-nodemailer-adapter`.
+- Menggunakan *App Password* Gmail untuk otentikasi SMTP yang aman.
+- (*Backup*) Menginstal `nodemailer` dan `@types/nodemailer` di proyek Next.js untuk berjaga-jaga jika ingin beralih menggunakan `/api/send-alert/route.ts`.
+
+---
+
+### 3.4 — Pembaruan Branding Sidebar
+**Solusi:** Mengubah *header* Sidebar dari "AC Monitor" menjadi "AHU Monitoring EMS BFS" agar terlihat lebih representatif dan profesional.
+
+**File yang diubah:**
+- `components/layout/Sidebar.tsx`
 
 ---
 
@@ -331,11 +375,11 @@ NEXT_PUBLIC_NODE_RED_URL=http://10.165.40.127:1880
 │  BFS_EMS_Fumigasi  → Data exclusion + copy nilai sensor      │
 └──────────────────────────────────────────────────────────────┘
 
-Node-RED (10.165.40.127:1880)
+Node-RED (10.165.40.13:1880)
 → Digunakan HANYA untuk: DELETE exclusion (Mustache SQL template)
 → TIDAK lagi digunakan untuk: INSERT (sudah pindah ke Next.js API)
 ```
 
 ---
 
-*Dokumentasi ini dibuat otomatis — terakhir diperbarui: 15 Mei 2026*
+*Dokumentasi ini dibuat otomatis — terakhir diperbarui: 20 Mei 2026*
