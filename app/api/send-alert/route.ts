@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       // "dhani.putra@dankosfarma.com",
       // "seraf.oryzanandi@dankosfarma.com",
       // "anton.hermansyah@dankosfarma.com",
-      // "nebulizereyedrop@gmail.com"
+      "nebulizereyedrop@gmail.com"
     ].join(', ');
 
 
