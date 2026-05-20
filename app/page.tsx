@@ -92,6 +92,65 @@ export default function Dashboard() {
         const now = new Date();
         const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
         setLastFetchTime(timeString);
+
+        // --- CEK ANOMALI UNTUK EMAIL ALERT ---
+        const allAnomalies: string[] = [];
+        const trackingState: string[] = [];
+        let isCriticalGlobal = false;
+
+        results.forEach((result) => {
+          if (!result.data) return;
+          const { status, temperature, relative_humidity, differential_pressure, dp1, dp2 } = result.data;
+          
+          if (status !== 'normal') {
+            let roomAnomalies = [];
+            let roomState = [];
+            
+            // Re-evaluate to get specific messages
+            if (temperature > 25) { roomAnomalies.push(`Suhu kritis: ${temperature.toFixed(1)}°C`); roomState.push('TEMP_CRIT'); isCriticalGlobal = true; }
+            else if (temperature > 24) { roomAnomalies.push(`Suhu warning: ${temperature.toFixed(1)}°C`); roomState.push('TEMP_WARN'); }
+
+            if (relative_humidity > 60) { roomAnomalies.push(`RH kritis: ${relative_humidity.toFixed(1)}%`); roomState.push('RH_CRIT'); isCriticalGlobal = true; }
+            else if (relative_humidity > 59) { roomAnomalies.push(`RH warning: ${relative_humidity.toFixed(1)}%`); roomState.push('RH_WARN'); }
+
+            // Base DP
+            if (differential_pressure !== undefined && differential_pressure !== null) {
+              if (differential_pressure <= 5) { roomAnomalies.push(`DP kritis: ${differential_pressure.toFixed(1)} Pa`); roomState.push('DP_CRIT'); isCriticalGlobal = true; }
+              else if (differential_pressure <= 8) { roomAnomalies.push(`DP warning: ${differential_pressure.toFixed(1)} Pa`); roomState.push('DP_WARN'); }
+            }
+            
+            // DP1
+            if (dp1 !== undefined && dp1 !== null) {
+              if (dp1 <= 5) { roomAnomalies.push(`DP 1 kritis: ${dp1.toFixed(1)} Pa`); roomState.push('DP1_CRIT'); isCriticalGlobal = true; }
+              else if (dp1 <= 8) { roomAnomalies.push(`DP 1 warning: ${dp1.toFixed(1)} Pa`); roomState.push('DP1_WARN'); }
+            }
+
+            // DP2
+            if (dp2 !== undefined && dp2 !== null) {
+              if (dp2 <= 5) { roomAnomalies.push(`DP 2 kritis: ${dp2.toFixed(1)} Pa`); roomState.push('DP2_CRIT'); isCriticalGlobal = true; }
+              else if (dp2 <= 8) { roomAnomalies.push(`DP 2 warning: ${dp2.toFixed(1)} Pa`); roomState.push('DP2_WARN'); }
+            }
+
+            if (roomAnomalies.length > 0) {
+              allAnomalies.push(`🔹 [${result.room}]: ${roomAnomalies.join(', ')}`);
+              trackingState.push(`${result.room}(${roomState.join('|')})`);
+            }
+          }
+        });
+
+        // Selalu panggil API, biarkan API yang memutuskan apakah ini SPAM atau NORMAL (Clear State)
+        fetch('/api/send-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            anomalies: allAnomalies,
+            trackingState: trackingState,
+            isCritical: isCriticalGlobal,
+            lastFetchTime: timeString
+          })
+        }).catch(err => console.error('Gagal kirim email alert:', err));
+        // ------------------------------------
+
       } catch (err) {
         console.error("Gagal menarik data realtime:", err);
       }
