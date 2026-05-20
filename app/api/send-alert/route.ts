@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     messageText += `Waktu Tarikan Data Terakhir: ${lastFetchTime}\n`;
     messageText += `Daftar Ruangan:\n`;
     messageText += anomalies.join('\n') + `\n\n`;
-    messageText += `Harap segera lakukan pengecekan terkait status fumigasi!`;
+    messageText += `Harap segera lakukan pengecekan terkait status Environmental Monitoring System (EMS)`;
 
     const mailOptions = {
       from: '"EMS Monitor" <' + (process.env.EMAIL_USER || "nebulizereyedrop@gmail.com") + '>',
