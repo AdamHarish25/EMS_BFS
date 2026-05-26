@@ -163,9 +163,9 @@ export default function ReportChart({
           <div className="grid grid-cols-2 gap-3">
             <MetricChart title="Temperature" unit="°C" color="#3b82f6" data={validData} dataKey="temperature" />
             <MetricChart title="Relative Humidity" unit="%" color="#3b82f6" data={validData} dataKey="relative_humidity" />
-            <MetricChart title={hasDp2Valid ? "DP 1" : "Differential Pressure"} unit="Pa" color="#3b82f6" data={validData} dataKey="differential_pressure" />
+            <MetricChart title={hasDp2Valid ? "Differential Pressure 1" : "Differential Pressure"} unit="Pa" color="#3b82f6" data={validData} dataKey="differential_pressure" />
             {hasDp2Valid && (
-              <MetricChart title="DP 2" unit="Pa" color="#3b82f6" data={validData} dataKey="dp2" />
+              <MetricChart title="Differential Pressure 2" unit="Pa" color="#3b82f6" data={validData} dataKey="dp2" />
             )}
           </div>
         </div>
@@ -175,9 +175,9 @@ export default function ReportChart({
           <div className="grid grid-cols-2 gap-3">
             <MetricChart title="Temperature" unit="°C" color="#3b82f6" data={excludedData} dataKey="temperature" />
             <MetricChart title="Relative Humidity" unit="%" color="#3b82f6" data={excludedData} dataKey="relative_humidity" />
-            <MetricChart title={hasDp2Excluded ? "DP 1" : "Differential Pressure"} unit="Pa" color="#3b82f6" data={excludedData} dataKey="differential_pressure" />
+            <MetricChart title={hasDp2Excluded ? "Differential Pressure 1" : "Differential Pressure"} unit="Pa" color="#3b82f6" data={excludedData} dataKey="differential_pressure" />
             {hasDp2Excluded && (
-              <MetricChart title="DP 2" unit="Pa" color="#3b82f6" data={excludedData} dataKey="dp2" />
+              <MetricChart title="Differential Pressure 2" unit="Pa" color="#3b82f6" data={excludedData} dataKey="dp2" />
             )}
           </div>
         </div>

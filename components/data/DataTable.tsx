@@ -147,8 +147,8 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Unit")}</th>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Temp")}</th>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("RH")}</th>
-              <th className="px-6 py-4 font-semibold tracking-wider">DP 1</th>
-              <th className="px-6 py-4 font-semibold tracking-wider">DP 2</th>
+              <th className="px-6 py-4 font-semibold tracking-wider">Differential Pressure 1 (Pa)</th>
+              <th className="px-6 py-4 font-semibold tracking-wider">Differential Pressure 2 (Pa)</th>
               <th className="px-6 py-4 font-semibold tracking-wider text-right">{t("Status")}</th>
             </tr>
           </thead>

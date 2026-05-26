@@ -87,7 +87,7 @@ export default function Dashboard() {
         });
 
         setRealtimeData(newRealtimeData);
-        
+
         // Simpan waktu penarikan terakhir (jam:menit:detik)
         const now = new Date();
         const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
@@ -101,11 +101,11 @@ export default function Dashboard() {
         results.forEach((result) => {
           if (!result.data) return;
           const { status, temperature, relative_humidity, differential_pressure, dp1, dp2 } = result.data;
-          
+
           if (status !== 'normal') {
             let roomAnomalies = [];
             let roomState = [];
-            
+
             // Re-evaluate to get specific messages
             if (temperature > 25) { roomAnomalies.push(`Suhu kritis: ${temperature.toFixed(1)}°C`); roomState.push('TEMP_CRIT'); isCriticalGlobal = true; }
             else if (temperature > 24) { roomAnomalies.push(`Suhu warning: ${temperature.toFixed(1)}°C`); roomState.push('TEMP_WARN'); }
@@ -118,7 +118,7 @@ export default function Dashboard() {
               if (differential_pressure <= 5) { roomAnomalies.push(`DP kritis: ${differential_pressure.toFixed(1)} Pa`); roomState.push('DP_CRIT'); isCriticalGlobal = true; }
               else if (differential_pressure <= 8) { roomAnomalies.push(`DP warning: ${differential_pressure.toFixed(1)} Pa`); roomState.push('DP_WARN'); }
             }
-            
+
             // DP1
             if (dp1 !== undefined && dp1 !== null) {
               if (dp1 <= 5) { roomAnomalies.push(`DP 1 kritis: ${dp1.toFixed(1)} Pa`); roomState.push('DP1_CRIT'); isCriticalGlobal = true; }
@@ -248,7 +248,7 @@ export default function Dashboard() {
                     <div className="flex-1 flex flex-col justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
                       <div className="flex items-center gap-2 text-slate-400 mb-2">
                         <Wind className="w-4 h-4 text-teal-400" />
-                        <span className="text-xs font-medium">DP 1</span>
+                        <span className="text-xs font-medium">Diff. Pressure 1</span>
                       </div>
                       <div className="text-lg font-bold text-slate-100">
                         {data.dp1 !== null ? data.dp1.toFixed(1) : '--'} <span className="text-xs text-slate-500 font-normal">Pa</span>
@@ -257,7 +257,7 @@ export default function Dashboard() {
                     <div className="flex-1 flex flex-col justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
                       <div className="flex items-center gap-2 text-slate-400 mb-2">
                         <Wind className="w-4 h-4 text-teal-400" />
-                        <span className="text-xs font-medium">DP 2</span>
+                        <span className="text-xs font-medium">Diff. Pressure 2</span>
                       </div>
                       <div className="text-lg font-bold text-slate-100">
                         {data.dp2 !== null ? data.dp2.toFixed(1) : '--'} <span className="text-xs text-slate-500 font-normal">Pa</span>

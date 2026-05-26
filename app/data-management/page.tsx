@@ -6,6 +6,7 @@ import { Loader2, Search } from 'lucide-react';
 import ExclusionForm from '@/components/data/ExclusionForm';
 import ExclusionList from '@/components/data/ExclusionList';
 import DataTable from '@/components/data/DataTable';
+import RoomForm from '@/components/data/RoomForm';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.127:1880';
@@ -262,6 +263,7 @@ export default function DataManagementPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
+          <RoomForm />
           <ExclusionForm onAddExclusion={handleAddExclusion} readings={readings} />
           <ExclusionList exclusions={exclusions} onDelete={handleDeleteExclusion} />
         </div>

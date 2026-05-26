@@ -80,7 +80,20 @@ const translations: Record<Language, Record<string, string>> = {
     "Fetching Data": "Mengambil Data...",
     "Rendering PDF": "Membuat PDF...",
     "System Online": "Sistem Online",
-    "System Offline": "Sistem Offline"
+    "System Offline": "Sistem Offline",
+    "All Fields Required": "Semua kolom harus diisi",
+    "Failed Add Room": "Gagal menambahkan ruangan",
+    "Success Add Room": "Ruangan berhasil ditambahkan",
+    "Error Add Room": "Terjadi kesalahan saat menambahkan ruangan",
+    "Add New Room": "Tambah Ruangan Baru (Master Data)",
+    "External Log ID": "ID Log Eksternal",
+    "Room Name": "Nama Ruangan",
+    "Target Column": "Kolom Target",
+    "Unit Display Name": "Nama Tampilan Unit",
+    "Line": "Line",
+    "Active": "Aktif",
+    "Inactive": "Nonaktif",
+    "Add Room": "Tambah Ruangan"
   },
   en: {
     "System Dashboard": "System Dashboard",
@@ -152,7 +165,20 @@ const translations: Record<Language, Record<string, string>> = {
     "Fetching Data": "Fetching Data...",
     "Rendering PDF": "Rendering PDF...",
     "System Online": "System Online",
-    "System Offline": "System Offline"
+    "System Offline": "System Offline",
+    "All Fields Required": "All fields must be filled",
+    "Failed Add Room": "Failed to add room",
+    "Success Add Room": "Room successfully added",
+    "Error Add Room": "An error occurred while adding the room",
+    "Add New Room": "Add New Room (Master Data)",
+    "External Log ID": "External Log ID",
+    "Room Name": "Room Name",
+    "Target Column": "Target Column",
+    "Unit Display Name": "Unit Display Name",
+    "Line": "Line",
+    "Active": "Active",
+    "Inactive": "Inactive",
+    "Add Room": "Add Room"
   }
 };
 

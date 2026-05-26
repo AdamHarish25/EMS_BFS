@@ -236,11 +236,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             const rh = r.numRH;
             const dp = r.dp1 != null ? r.dp1 : r.numDP;
             const dp2 = r.dp2 != null ? r.dp2 : null;
-            
-            const isWarningOrCritical = 
-              (temp != null && temp > 24) || 
-              (rh != null && rh > 59) || 
-              (dp != null && dp <= 8) || 
+
+            const isWarningOrCritical =
+              (temp != null && temp > 24) ||
+              (rh != null && rh > 59) ||
+              (dp != null && dp <= 8) ||
               (dp2 != null && dp2 <= 8);
 
             if (!isWarningOrCritical) {
@@ -298,7 +298,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       }
 
       const hasSubDp = (r.dp1 !== undefined && r.dp1 !== null) || (r.dp2 !== undefined && r.dp2 !== null);
-      
+
       if (hasSubDp) {
         if (r.dp1 !== undefined && r.dp1 !== null) {
           minD1 = minD1 === null ? r.dp1 : Math.min(minD1, r.dp1);
@@ -380,7 +380,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'DP 1 / DP', 'DP 2 (Pa)', 'Status']],
+          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure (Pa)', 'Differential Pressure 2 (Pa)', 'Status']],
           body: validRows,
           theme: 'striped',
           headStyles: { fillColor: [59, 130, 246] },
@@ -393,7 +393,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               const rh = Number(r.relative_humidity);
               const dp = r.dp1 != null ? Number(r.dp1) : Number(r.differential_pressure);
               const dp2 = r.dp2 != null ? Number(r.dp2) : null;
-              
+
               const applyWarning = () => {
                 data.cell.styles.fillColor = [254, 243, 199]; // amber-100
                 data.cell.styles.textColor = [180, 83, 9];    // amber-700
@@ -450,7 +450,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'DP 1 / DP', 'DP 2 (Pa)', 'Status']],
+          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure 1 / Differential Pressure', 'Differential Pressure 2 (Pa)', 'Status']],
           body: excludedRows,
           theme: 'striped',
           headStyles: { fillColor: [239, 68, 68] },
@@ -519,18 +519,18 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           finalY += 6;
           pdf.text(`Non-Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(validStats.minRH, '%')} | Max = ${formatSummaryNumber(validStats.maxRH, '%')}`, 14, finalY);
           finalY += 6;
-          
+
           if (validStats.hasDp1 || validStats.hasDp2) {
             if (validStats.hasDp1) {
-              pdf.text(`Non-Fumigasi - DP 1: Min = ${formatSummaryNumber(validStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP1, 'Pa')}`, 14, finalY);
+              pdf.text(`Non-Fumigasi - Differential Pressure 1: Min = ${formatSummaryNumber(validStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP1, 'Pa')}`, 14, finalY);
               finalY += 6;
             }
             if (validStats.hasDp2) {
-              pdf.text(`Non-Fumigasi - DP 2: Min = ${formatSummaryNumber(validStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP2, 'Pa')}`, 14, finalY);
+              pdf.text(`Non-Fumigasi - Differential Pressure 2: Min = ${formatSummaryNumber(validStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP2, 'Pa')}`, 14, finalY);
               finalY += 6;
             }
           } else {
-            pdf.text(`Non-Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(validStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP, 'Pa')}`, 14, finalY);
+            pdf.text(`Non-Fumigasi - Differential Pressure: Min = ${formatSummaryNumber(validStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP, 'Pa')}`, 14, finalY);
             finalY += 6;
           }
           finalY += 2;
@@ -545,18 +545,18 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           finalY += 6;
           pdf.text(`Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(excludedStats.minRH, '%')} | Max = ${formatSummaryNumber(excludedStats.maxRH, '%')}`, 14, finalY);
           finalY += 6;
-          
+
           if (excludedStats.hasDp1 || excludedStats.hasDp2) {
             if (excludedStats.hasDp1) {
-              pdf.text(`Fumigasi - DP 1: Min = ${formatSummaryNumber(excludedStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP1, 'Pa')}`, 14, finalY);
+              pdf.text(`Fumigasi - Differential Pressure 1: Min = ${formatSummaryNumber(excludedStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP1, 'Pa')}`, 14, finalY);
               finalY += 6;
             }
             if (excludedStats.hasDp2) {
-              pdf.text(`Fumigasi - DP 2: Min = ${formatSummaryNumber(excludedStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP2, 'Pa')}`, 14, finalY);
+              pdf.text(`Fumigasi - Differential Pressure 2: Min = ${formatSummaryNumber(excludedStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP2, 'Pa')}`, 14, finalY);
               finalY += 6;
             }
           } else {
-            pdf.text(`Fumigasi - Differential Pressure (DP): Min = ${formatSummaryNumber(excludedStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP, 'Pa')}`, 14, finalY);
+            pdf.text(`Fumigasi - Differential Pressure: Min = ${formatSummaryNumber(excludedStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP, 'Pa')}`, 14, finalY);
             finalY += 6;
           }
           finalY += 2;
