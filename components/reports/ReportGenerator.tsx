@@ -619,19 +619,19 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
     <div className="space-y-6">
 
       {/* FILTER CONTROLS */}
-      <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-        <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2 mb-6">
+      <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
           <Filter className="w-5 h-5 text-blue-500" />
           {t("Filter Config")}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">{t("Room")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("Room")}</label>
             <select
               value={selectedRoom}
               onChange={(e) => setSelectedRoom(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="Pilih Ruangan">{t("Select Room 2")}</option>
               {uniqueRooms.map(r => (
@@ -640,48 +640,48 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">{t("Start Date")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("Start Date")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input
                 type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">{t("End Date")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("End Date")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               <input
                 type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
               />
             </div>
           </div>
           {/* Tambahan Kolom Interval */}
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Interval Data</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("Data Interval")}</label>
             <select
               value={dataInterval}
               onChange={(e) => setDataInterval(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
-              <option value="raw">Semua Data (Raw)</option>
-              <option value="5m">Per 5 Menit</option>
-              <option value="1h">Per 1 Jam</option>
+              <option value="raw">{t("Raw Data")}</option>
+              <option value="5m">{t("Per 5 Min")}</option>
+              <option value="1h">{t("Per 1 Hour")}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">{t("Report Type")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("Report Type")}</label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="Semua Data">{t("All Data")}</option>
               <option value="Non-Fumigasi">{t("Valid Only")}</option>
@@ -712,13 +712,13 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <FileBarChart className="w-6 h-6 text-emerald-500" />
             {t("PDF Export")}
           </h2>
-          <p className="text-slate-400 mt-1 text-sm">{t("Download Report Desc")}</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("Download Report Desc")}</p>
         </div>
         <button
           onClick={handleGeneratePDF}
@@ -737,24 +737,24 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-md">
-          <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">{t("Filtered Records")}</p>
-          <p className="text-4xl font-bold text-slate-100 mt-2">{dateFilteredReadings.length}</p>
+        <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-md">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t("Filtered Records")}</p>
+          <p className="text-4xl font-bold text-slate-800 dark:text-slate-100 mt-2">{dateFilteredReadings.length}</p>
         </div>
-        <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Fumigasi' ? 'bg-slate-900/50 border-emerald-900/20 opacity-50' : 'bg-slate-900 border-emerald-900/50'}`}>
+        <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Fumigasi' ? 'bg-white dark:bg-slate-900/50 border-emerald-900/20 opacity-50' : 'bg-white dark:bg-slate-900 border-emerald-900/50'}`}>
           <p className="text-sm font-medium text-emerald-500 uppercase tracking-wider">{t("Valid Data")}</p>
           <p className="text-4xl font-bold text-emerald-400 mt-2">{validReadings.length}</p>
         </div>
-        <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Non-Fumigasi' ? 'bg-slate-900/50 border-rose-900/20 opacity-50' : 'bg-slate-900 border-rose-900/50'}`}>
+        <div className={`p-6 rounded-2xl shadow-md border ${reportType === 'Non-Fumigasi' ? 'bg-white dark:bg-slate-900/50 border-rose-900/20 opacity-50' : 'bg-white dark:bg-slate-900 border-rose-900/50'}`}>
           <p className="text-sm font-medium text-rose-500 uppercase tracking-wider">{t("Excluded Fumigasi")}</p>
           <p className="text-4xl font-bold text-rose-400 mt-2">{excludedReadings.length}</p>
         </div>
       </div>
 
-      <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-        <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
+      <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl">
+        <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
           {t("Visual Preview")}
-          <span className="text-xs font-normal text-slate-500 bg-slate-950 px-2 py-1 rounded-md">{t("Included in PDF")}</span>
+          <span className="text-xs font-normal text-slate-500 bg-slate-50 dark:bg-slate-950 px-2 py-1 rounded-md">{t("Included in PDF")}</span>
         </h3>
 
         {/* We wrap it in a ref so html2canvas can capture it */}
@@ -762,13 +762,13 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           {selectedRoom === 'Pilih Ruangan' ? (
             <div className="w-full h-[400px] flex flex-col items-center justify-center text-slate-500">
               <Filter className="w-12 h-12 mb-4 opacity-30" />
-              <p className="text-xl font-medium text-slate-400">{t("Select Room First")}</p>
+              <p className="text-xl font-medium text-slate-500 dark:text-slate-400">{t("Select Room First")}</p>
               <p className="text-sm mt-2">{t("Choose Room PDF")}</p>
             </div>
           ) : dateFilteredReadings.length === 0 ? (
             <div className="w-full h-[400px] flex flex-col items-center justify-center text-slate-500">
               <FileText className="w-12 h-12 mb-4 opacity-30" />
-              <p className="text-xl font-medium text-slate-400">{t("No Data")}</p>
+              <p className="text-xl font-medium text-slate-500 dark:text-slate-400">{t("No Data")}</p>
               <p className="text-sm mt-2">{t("Fill Filter PDF")}</p>
             </div>
           ) : (

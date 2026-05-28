@@ -152,3 +152,57 @@ If you need the database indexes for improved query performance, run the `/api/o
 ---
 
 *All changes have been committed to the repository. Feel free to open a PR, merge, or continue iterating!*
+
+---
+
+# 📋 Recent Updates (Late May 2026)
+
+The following changes were implemented to extend functionality, resolve bugs, and drastically improve the dashboard's UI/UX.
+
+## 1️⃣ Room Management Master Data
+
+| # | Change | Description | Reason |
+|---|--------|-------------|--------|
+| 1 | **Added `app/api/add-room/route.ts`** | Created secure API endpoint to insert new room configurations. | Allows users to register new rooms in the system dynamically. |
+| 2 | **Sequence bypass logic** | Used `COALESCE(MAX(id), 0) + 1` for IDs. | Resolved `42501` Postgres sequence permission error. |
+| 3 | **Added `RoomForm.tsx` component** | Created a user-friendly form with full validation. | Allows admins to seamlessly add rooms from the Data Management page. |
+| 4 | **Language Localization** | Integrated all RoomForm strings into `LanguageContext`. | Ensures consistent English/Indonesian support. |
+
+## 2️⃣ Critical Bug Fix: HTTP 500 on `api/get-exclusions`
+
+| # | Change | Description | Reason |
+|---|--------|-------------|--------|
+| 1 | **Updated SQL Query with `TRIM()`** | Modified the `SELECT` query to trim string padding on `reading_id`, `unit_id`, `reason`, etc. | PostgreSQL `CHAR` padding caused JSON payload sizes to inflate massively (e.g., to >1.2MB), which crashed Next.js parsing and threw a 500 error. |
+
+## 3️⃣ Dashboard UI/UX Overhaul (Dashboard Principles)
+
+| # | Change | Description | Reason |
+|---|--------|-------------|--------|
+| 1 | **KPI Summary Row** | Added top-level summary cards (System Status, Active Units, Active Alerts) to `app/page.tsx`. | Rule: Understand dashboard health in < 5 seconds. |
+| 2 | **Removed Heavy Borders** | Stripped heavy inner borders from metric cards in favor of clean grid spacing and whitespace. | Rule: Use whitespace effectively and reduce visual clutter. |
+| 3 | **Refined Typographic Hierarchy** | Enlarged data values (`text-2xl`) while subduing labels and units. | Rule: Help eyes focus on the main insights immediately. |
+| 4 | **Streamlined Filters Panel** | Restructured `app/data-management/page.tsx` filters from a cramped 6-column to a breathable 3-column layout. | Rule: Simple & strategic filters at the top of the dashboard. |
+| 5 | **Fixed Card Flex Layout** | Restructured HTML in `app/page.tsx` to properly close the header `div`. | Rule: Keep cards lean by stacking metrics neatly below the title instead of floating them side-by-side. |
+
+## 4️⃣ Dynamic Light/Dark Mode Theme Support
+
+| # | Change | Description | Reason |
+|---|--------|-------------|--------|
+| 1 | **Installed `next-themes`** | Configured `ThemeProvider` in `app/providers.tsx`. | Standardized ecosystem approach for theme switching without flickering. |
+| 2 | **Configured Tailwind** | Enabled `darkMode: 'class'` in `tailwind.config.ts`. | Activates theme toggling based on `.dark` class. |
+| 3 | **Migrated Hardcoded Colors** | Used a node script to migrate all `bg-slate-900` hardcoding into `bg-white dark:bg-slate-900` variations across components. | Required to make the dashboard render correctly in both modes. |
+| 4 | **Added Theme Toggle Button** | Added a Sun/Moon toggle button to `Sidebar.tsx`. | Gives users direct control over their operational visibility. |
+| 5 | **AppLayout Hardcoded Hex Fix** | Replaced unconditional `#0a0f1c` backgrounds in `AppLayout.tsx` with `bg-slate-50 dark:bg-[#0a0f1c]` classes. | Ensures the overarching page background fully switches to Light Mode regardless of browser settings. |
+| 6 | **Report Generator Exception** | Locked the PDF `Visual Preview` specifically to `bg-white` and dark text. | Ensures PDF exports always print in a clean, legible document format, even if the app UI is in dark mode. |
+
+## 5️⃣ Translation & Human-Centric Copywriting
+
+| # | Change | Description | Reason |
+|---|--------|-------------|--------|
+| 1 | **LanguageContext Mapping** | Replaced all loose hardcoded strings (KPIs, Dropdowns, Toggles) in `app/page.tsx`, `ReportGenerator.tsx`, and `Sidebar.tsx` with `t("...")`. | Ensures 100% of the dashboard fully translates dynamically without reloading. |
+| 2 | **Copywriting Overhaul** | Rewrote dictionary strings (e.g. `Raw Telemetry` ➔ `Data Mentah Sensor`) in `contexts/LanguageContext.tsx`. | Replaces robotic jargon with intuitive, human-centric terminology for daily operators. |
+| 3 | **Restored DP Labels** | Expanded the shortened "DP 1" and "DP 2" labels back to "Differential Pressure 1 & 2". | Preserves clarity in the dashboard while maintaining the lean UI constraints. |
+
+---
+
+*All latest changes are pushed and live!*

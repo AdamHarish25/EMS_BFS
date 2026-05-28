@@ -24,26 +24,26 @@ export default function MetricCard({ title, value, unit, icon: Icon, trend, stat
   };
 
   return (
-    <div className={`p-6 rounded-2xl bg-slate-900 border border-slate-800 ${statusGlow[status]} flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1 hover:border-slate-700`}>
+    <div className={`p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${statusGlow[status]} flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 dark:border-slate-700`}>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
           <div className={`p-3 rounded-xl ${statusColors[status]}`}>
             <Icon className="w-6 h-6" />
           </div>
-          <h3 className="text-slate-400 font-medium">{title}</h3>
+          <h3 className="text-slate-500 dark:text-slate-400 font-medium">{title}</h3>
         </div>
         <div className={`w-2.5 h-2.5 rounded-full ${statusColors[status].split(' ')[0]} ${status === 'critical' ? 'animate-pulse' : ''}`} />
       </div>
       
       <div className="mt-2">
         <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-bold text-slate-50 tracking-tight">{value}</span>
+          <span className="text-4xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">{value}</span>
           <span className="text-lg text-slate-500 font-medium">{unit}</span>
         </div>
         
         {trendValue && (
           <div className="flex items-center gap-2 mt-3 text-sm">
-            <span className={trend === 'up' ? 'text-red-400' : trend === 'down' ? 'text-green-400' : 'text-slate-400'}>
+            <span className={trend === 'up' ? 'text-red-400' : trend === 'down' ? 'text-green-400' : 'text-slate-500 dark:text-slate-400'}>
               {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '-'} {trendValue}
             </span>
             <span className="text-slate-600">vs last hour</span>

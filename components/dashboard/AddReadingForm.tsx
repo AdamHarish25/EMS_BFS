@@ -26,8 +26,8 @@ export default function AddReadingForm({ onAdd }: { onAdd: (data: any) => void }
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 w-full">
-      <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
+    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full">
+      <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
         <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400">
           <Plus className="w-4 h-4" />
         </div>
@@ -36,11 +36,11 @@ export default function AddReadingForm({ onAdd }: { onAdd: (data: any) => void }
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Unit ID</label>
+            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Unit ID</label>
             <select
               value={formData.unit_id}
               onChange={e => setFormData({ ...formData, unit_id: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               {ROOMS.map(r => (
                 <option key={r} value={r}>{r}</option>
@@ -48,11 +48,11 @@ export default function AddReadingForm({ onAdd }: { onAdd: (data: any) => void }
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Status</label>
+            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</label>
             <select
               value={formData.status}
               onChange={e => setFormData({ ...formData, status: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="normal">Normal</option>
               <option value="warning">Warning</option>
@@ -60,32 +60,32 @@ export default function AddReadingForm({ onAdd }: { onAdd: (data: any) => void }
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Temp (°C)</label>
+            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Temp (°C)</label>
             <input
               required type="number" step="0.1"
               value={formData.temperature}
               onChange={e => setFormData({ ...formData, temperature: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
               placeholder="22.5"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">RH (%)</label>
+            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">RH (%)</label>
             <input
               required type="number" step="0.1"
               value={formData.relative_humidity}
               onChange={e => setFormData({ ...formData, relative_humidity: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
               placeholder="45.0"
             />
           </div>
           <div className="space-y-1.5 col-span-2">
-            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">DP (Pa)</label>
+            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">DP (Pa)</label>
             <input
               required type="number" step="0.1"
               value={formData.differential_pressure}
               onChange={e => setFormData({ ...formData, differential_pressure: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
               placeholder="12.5"
             />
           </div>

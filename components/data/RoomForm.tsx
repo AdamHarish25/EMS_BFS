@@ -58,71 +58,71 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
-      <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
+    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
+      <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
         <PlusCircle className="w-5 h-5 text-emerald-500" />
         {t("Add New Room")}
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">{t("External Log ID")}</label>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("External Log ID")}</label>
           <input
             type="number"
             value={externalLogId}
             onChange={(e) => setExternalLogId(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             placeholder="e.g. 101"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">{t("Room Name")}</label>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Room Name")}</label>
           <input
             type="text"
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             placeholder="e.g. Dispensing 1"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">{t("Target Column")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Target Column")}</label>
             <input
               type="text"
               value={targetColumn}
               onChange={(e) => setTargetColumn(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
               placeholder="e.g. EMS_Temp"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">{t("Unit Display Name")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Unit Display Name")}</label>
             <input
               type="text"
               value={unitDisplayName}
               onChange={(e) => setUnitDisplayName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
               placeholder="e.g. Temp °C"
             />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">{t("Line")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Line")}</label>
             <input
               type="text"
               value={line}
               onChange={(e) => setLine(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
               placeholder="e.g. Line 1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">{t("Status")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Status")}</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             >
               <option value="Active">{t("Active")}</option>
               <option value="Inactive">{t("Inactive")}</option>

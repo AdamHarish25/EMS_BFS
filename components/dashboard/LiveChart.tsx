@@ -25,8 +25,8 @@ export default function LiveChart({ data }: { data: DataPoint[] }) {
     }));
 
   return (
-    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 h-[400px] w-full">
-      <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
+    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 h-[400px] w-full">
+      <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
         {t("Live Trends")}
       </h3>

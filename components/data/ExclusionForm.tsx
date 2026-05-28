@@ -67,18 +67,18 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
-      <h3 className="text-lg font-medium text-slate-200 mb-6 flex items-center gap-2">
+    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
+      <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
         <AlertCircle className="w-5 h-5 text-rose-500" />
         {t("Add Exclusion")}
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">{t("Room")}</label>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Room")}</label>
           <select
             value={unitId}
             onChange={(e) => setUnitId(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
             {ROOMS.map(r => (
               <option key={r} value={r}>{r}</option>
@@ -86,63 +86,63 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1">{t("Start Period")}</div>
+          <div className="col-span-2 text-sm font-medium text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-1">{t("Start Period")}</div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">{t("Date")}</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Date")}</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Waktu</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Waktu</label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
 
-          <div className="col-span-2 text-sm font-medium text-slate-300 border-b border-slate-800 pb-1 mt-2">{t("End Period")}</div>
+          <div className="col-span-2 text-sm font-medium text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-1 mt-2">{t("End Period")}</div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">{t("Date")}</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Date")}</label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Waktu</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Waktu</label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">{t("Reason")}</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Reason")}</label>
             <textarea
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
               placeholder={t("Reason Placeholder")}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Target Data (Status)</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Target Data (Status)</label>
             <select
               value={statusTag}
               onChange={(e) => setStatusTag(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="Semua">Semua Status (Normal + Warning/Critical)</option>
               <option value="Warning/Critical">Hanya Data TMS</option>

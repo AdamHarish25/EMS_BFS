@@ -71,8 +71,8 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1 mb-8">
-        <h1 className="text-3xl font-bold text-slate-50 tracking-tight">{t("System Reports")}</h1>
-        <p className="text-slate-400">{t("Generate Reports")}</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">{t("System Reports")}</h1>
+        <p className="text-slate-500 dark:text-slate-400">{t("Generate Reports")}</p>
       </div>
 
       <ReportGenerator readings={readings} exclusions={exclusions} />

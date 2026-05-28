@@ -55,7 +55,7 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
 
   const renderCell = (type: 'temp' | 'rh' | 'dp', value: number | null | undefined) => {
     const status = getParamStatus(type, value);
-    let colorClass = 'text-slate-300';
+    let colorClass = 'text-slate-600 dark:text-slate-300';
 
     if (status === 'critical') {
       colorClass = 'text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 rounded px-2 py-0.5 inline-block';
@@ -134,14 +134,14 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
   });
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden shadow-xl">
-      <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-        <h3 className="font-medium text-slate-200">{t("Raw Telemetry")}</h3>
-        <span className="text-xs font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">{filteredData.length} {t("Records Shown")}</span>
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xl">
+      <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900/50">
+        <h3 className="font-medium text-slate-700 dark:text-slate-200">{t("Raw Telemetry")}</h3>
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">{filteredData.length} {t("Records Shown")}</span>
       </div>
       <div className="overflow-x-auto max-h-[800px] custom-scrollbar">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-400 uppercase bg-slate-950/80 sticky top-0 z-10 backdrop-blur-sm">
+          <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950/80 sticky top-0 z-10 backdrop-blur-sm">
             <tr>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Time")}</th>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Unit")}</th>
@@ -176,7 +176,7 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
                 // Jika tanggal di baris ini beda dengan baris sebelumnya, sisipkan Pemisah!
                 if (dateStr !== lastDateStr) {
                   dateSeparator = (
-                    <tr key={`header-${dateStr}`} className="bg-slate-900/90 sticky top-[48px] z-10 backdrop-blur-md shadow-md border-y border-slate-700/50">
+                    <tr key={`header-${dateStr}`} className="bg-white dark:bg-slate-900/90 sticky top-[48px] z-10 backdrop-blur-md shadow-md border-y border-slate-300 dark:border-slate-700/50">
                       <td colSpan={6} className="px-6 py-2.5 text-xs font-bold text-blue-400 uppercase tracking-wider">
                         {displayDate}
                       </td>
@@ -188,12 +188,12 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
                 return (
                   <React.Fragment key={r.id || i}>
                     {dateSeparator}
-                    <tr className={`hover:bg-slate-800/40 transition-colors ${excluded ? 'bg-rose-950/20 hover:bg-rose-950/30 opacity-60' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap text-slate-300 font-mono text-xs">
+                    <tr className={`hover:bg-slate-100 dark:bg-slate-800/40 transition-colors ${excluded ? 'bg-rose-950/20 hover:bg-rose-950/30 opacity-60' : ''}`}>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-xs">
                         {/* Tampilkan jamnya saja karena tanggalnya sudah ada di header atas */}
                         {r.jam_asli ? r.jam_asli.split(' ')[1] : displayTime}
                       </td>
-                      <td className="px-6 py-4 text-slate-300 font-medium">{r.unit_id}</td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">{r.unit_id}</td>
                       <td className="px-6 py-4">
                         {renderCell('temp', r.temperature)}
                       </td>
