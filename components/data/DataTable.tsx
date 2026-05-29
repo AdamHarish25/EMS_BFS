@@ -141,7 +141,7 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
       </div>
       <div className="overflow-x-auto max-h-[800px] custom-scrollbar">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950/80 sticky top-0 z-10 backdrop-blur-sm">
+          <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950/80 sticky top-0 z-20 backdrop-blur-sm shadow-sm">
             <tr>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Time")}</th>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Unit")}</th>

@@ -257,18 +257,7 @@ export default function DataManagementPage() {
               <option value="1h">{t("Per 1 Hour")}</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{t("Data Type")}</label>
-            <select
-              value={dataFilter}
-              onChange={(e) => { setDataFilter(e.target.value); setHasFetched(false); }}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm transition-all shadow-inner"
-            >
-              <option value="Semua Data">{t("All Data")}</option>
-              <option value="Non-Fumigasi">{t("Normal Recorded")}</option>
-              <option value="Fumigasi">{t("Excluded TMS")}</option>
-            </select>
-          </div>
+
           <div>
             <button
               onClick={handleFetchData}
@@ -299,12 +288,28 @@ export default function DataManagementPage() {
             onDelete={handleDeleteExclusion}
           />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 flex flex-col gap-4">
           <DataTable
             readings={readings}
             exclusions={exclusions}
             dataFilter={dataFilter}
           />
+          {hasFetched && (
+            <div className="flex items-center justify-end bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t("Data Type")}:</label>
+                <select
+                  value={dataFilter}
+                  onChange={(e) => setDataFilter(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm transition-all shadow-inner"
+                >
+                  <option value="Semua Data">{t("All Data")}</option>
+                  <option value="Non-Fumigasi">{t("Normal Recorded")}</option>
+                  <option value="Fumigasi">{t("Excluded TMS")}</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
