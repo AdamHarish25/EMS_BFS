@@ -191,7 +191,7 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
                     <tr className={`hover:bg-slate-100 dark:bg-slate-800/40 transition-colors ${excluded ? 'bg-rose-950/20 hover:bg-rose-950/30 opacity-60' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-xs">
                         {/* Tampilkan jamnya saja karena tanggalnya sudah ada di header atas */}
-                        {r.jam_asli ? r.jam_asli.split(' ')[1] : displayTime}
+                        {r.jam_asli ? r.jam_asli.split(' ')[1].split('+')[0].split('-')[0] : displayTime}
                       </td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">{r.unit_id}</td>
                       <td className="px-6 py-4">
