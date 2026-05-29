@@ -15,7 +15,8 @@ export async function GET() {
         differential_pressure,
         status,
         created_date,
-        created_by
+        created_by,
+        comment
       FROM public."BFS_EMS_Sensor"
       ORDER BY timestamp DESC
       LIMIT 2000

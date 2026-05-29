@@ -1,11 +1,59 @@
 "use client";
 import { format } from 'date-fns';
 import React from 'react';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, MessageSquare } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
+
+const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || "http://10.165.40.13:1880";
 
 export default function DataTable({ readings, exclusions, dataFilter = 'Semua Data' }: { readings: any[], exclusions: any[], dataFilter?: string }) {
   const { t } = useLanguage();
+  const [comments, setComments] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    const initialComments: Record<string, string> = {};
+    readings.forEach(r => {
+      if (r.id && r.comment) {
+        initialComments[r.id] = r.comment;
+      }
+    });
+    setComments(initialComments);
+  }, [readings]);
+
+  const handleCommentClick = async (id: string, currentValue: number | string, typeName: string) => {
+    if (!id) {
+      toast.error('Gagal menambah komentar: Data ID tidak valid');
+      return;
+    }
+    const existing = comments[id] || '';
+    const newComment = window.prompt(`Berikan komentar untuk anomali ${typeName} (${currentValue}):`, existing);
+    if (newComment !== null) {
+      const updated = { ...comments };
+      if (newComment.trim() === '') {
+        delete updated[id];
+      } else {
+        updated[id] = newComment;
+      }
+      setComments(updated);
+
+      try {
+        const res = await fetch(`${NODE_RED}/api/update-comment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, comment: newComment.trim() === '' ? null : newComment.trim() })
+        });
+        if (!res.ok) {
+          throw new Error('Gagal menyimpan ke Node-RED');
+        }
+        toast.success('Komentar berhasil disimpan');
+      } catch (e: any) {
+        toast.error(e.message);
+        // revert
+        setComments(comments);
+      }
+    }
+  };
 
   const isExcluded = (reading: any) => {
     const readingTime = reading.timestampValue;
@@ -53,20 +101,46 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
     return 'normal';
   };
 
-  const renderCell = (type: 'temp' | 'rh' | 'dp', value: number | null | undefined) => {
+  const renderCell = (type: 'temp' | 'rh' | 'dp', value: number | null | undefined, readingId?: string) => {
     const status = getParamStatus(type, value);
     let colorClass = 'text-slate-600 dark:text-slate-300';
+    let isAnomalous = false;
 
     if (status === 'critical') {
-      colorClass = 'text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 rounded px-2 py-0.5 inline-block';
+      colorClass = 'text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 rounded px-2 py-0.5 inline-block cursor-pointer hover:bg-rose-500/20 transition-colors';
+      isAnomalous = true;
     } else if (status === 'warning') {
-      colorClass = 'text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 rounded px-2 py-0.5 inline-block';
+      colorClass = 'text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 rounded px-2 py-0.5 inline-block cursor-pointer hover:bg-amber-500/20 transition-colors';
+      isAnomalous = true;
     }
 
+    const typeName = type === 'temp' ? 'Suhu' : type === 'rh' ? 'Kelembapan' : 'Differential Pressure';
+    const commentKey = readingId;
+    const hasComment = commentKey && comments[commentKey];
+
     return (
-      <span className={colorClass}>
-        {value != null ? value.toFixed(1) : '--'}
-      </span>
+      <div className="flex items-center gap-2">
+        <span
+          className={colorClass}
+          onClick={() => {
+            if (isAnomalous && commentKey) {
+              handleCommentClick(commentKey, value != null ? value.toFixed(1) : '--', typeName);
+            }
+          }}
+          title={isAnomalous ? "Klik untuk menambah komentar" : ""}
+        >
+          {value != null ? value.toFixed(1) : '--'}
+        </span>
+        {hasComment && isAnomalous && (
+          <div className="group relative flex items-center">
+            <MessageSquare className="w-4 h-4 text-blue-500 cursor-help" />
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-normal">
+              {comments[commentKey]}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800"></div>
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -195,16 +269,16 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
                       </td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">{r.unit_id}</td>
                       <td className="px-6 py-4">
-                        {renderCell('temp', r.temperature)}
+                        {renderCell('temp', r.temperature, r.id)}
                       </td>
                       <td className="px-6 py-4">
-                        {renderCell('rh', r.relative_humidity)}
+                        {renderCell('rh', r.relative_humidity, r.id)}
                       </td>
                       <td className="px-6 py-4">
-                        {renderCell('dp', r.dp1 != null ? r.dp1 : r.differential_pressure)}
+                        {renderCell('dp', r.dp1 != null ? r.dp1 : r.differential_pressure, r.id)}
                       </td>
                       <td className="px-6 py-4">
-                        {renderCell('dp', r.dp2)}
+                        {renderCell('dp', r.dp2, r.id)}
                       </td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2 items-center">
                         {excluded && (

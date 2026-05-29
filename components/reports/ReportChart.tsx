@@ -1,5 +1,5 @@
 "use client";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
 type Reading = {
   timestamp: string;
@@ -59,19 +59,27 @@ function MetricChart({
 
   let threshold = 0;
   let isGreater = true;
+  let warningLimit = 0;
+  let criticalLimit = 0;
 
   if (dataKey === 'temperature') {
     threshold = 24;
+    warningLimit = 24;
+    criticalLimit = 25;
     yMin = Math.min(minVal - 1, 22);
-    yMax = Math.max(maxVal + 1, 26);
+    yMax = Math.max(maxVal + 1, 27);
     isGreater = true;
   } else if (dataKey === 'relative_humidity') {
     threshold = 59;
+    warningLimit = 59;
+    criticalLimit = 60;
     yMin = Math.min(minVal - 2, 50);
     yMax = Math.max(maxVal + 2, 65);
     isGreater = true;
   } else if (dataKey === 'differential_pressure' || dataKey === 'dp2') {
     threshold = 8;
+    warningLimit = 8;
+    criticalLimit = 5;
     yMin = Math.min(minVal - 2, 0);
     yMax = Math.max(maxVal + 2, 12);
     isGreater = false;
@@ -114,6 +122,20 @@ function MetricChart({
           axisLine={false}
           domain={[yMin, yMax]}
           allowDataOverflow
+        />
+        <ReferenceLine 
+          y={warningLimit} 
+          stroke="#f59e0b" 
+          strokeDasharray="4 4" 
+          strokeWidth={1}
+          label={{ position: isGreater ? 'insideBottomLeft' : 'insideTopLeft', value: 'Waspada', fill: '#f59e0b', fontSize: 10, fontWeight: 'bold' }} 
+        />
+        <ReferenceLine 
+          y={criticalLimit} 
+          stroke="#ef4444" 
+          strokeDasharray="4 4" 
+          strokeWidth={1.5}
+          label={{ position: isGreater ? 'insideTopLeft' : 'insideBottomLeft', value: 'Tindakan', fill: '#ef4444', fontSize: 10, fontWeight: 'bold' }} 
         />
         <Tooltip
           contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px' }}

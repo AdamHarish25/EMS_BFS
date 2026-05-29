@@ -20,7 +20,8 @@ export async function POST(req: Request) {
         differential_pressure,
         status,
         created_date,
-        created_by
+        created_by,
+        comment
       FROM public."BFS_EMS_Sensor"
     `;
     const values: any[] = [];

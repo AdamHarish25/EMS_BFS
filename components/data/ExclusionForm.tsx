@@ -14,6 +14,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
   const [startTime, setStartTime] = useState('');
   const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [exclusionType, setExclusionType] = useState('Fumigasi');
   const [reason, setReason] = useState('');
   const [statusTag, setStatusTag] = useState('Semua');
 
@@ -26,11 +27,28 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
       return;
     }
 
+    const start = new Date(`${startDate}T${startTime}`);
+    const end = new Date(`${endDate}T${endTime}`);
+    const diffMs = end.getTime() - start.getTime();
+    
+    if (diffMs <= 0) {
+      toast.error('Waktu selesai harus setelah waktu mulai');
+      return;
+    }
+
+    if (exclusionType === 'Fumigasi') {
+      const diffHours = diffMs / (1000 * 60 * 60);
+      if (diffHours > 3) {
+        toast.error('Untuk Fumigasi, pengecualian data maksimal hanya 3 jam!');
+        return;
+      }
+    }
+
     const payload = {
       unit_id: unitId,
       timestamp_start: `${startDate} ${startTime}:00`,
       timestamp_end: `${endDate} ${endTime}:00`,
-      reason: `[TAG:${statusTag}] ${reason}`,
+      reason: `[${exclusionType}] [TAG:${statusTag}] ${reason}`,
       excluded_by: 'admin@base44.io',
     };
 
@@ -83,6 +101,17 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             {ROOMS.map(r => (
               <option key={r} value={r}>{r}</option>
             ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tipe Anomali</label>
+          <select
+            value={exclusionType}
+            onChange={(e) => setExclusionType(e.target.value)}
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          >
+            <option value="Fumigasi">Fumigasi (Maks 3 Jam)</option>
+            <option value="PM">PM / Preventive Maintenance</option>
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
