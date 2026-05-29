@@ -210,12 +210,12 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
                         {excluded && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/10 text-rose-500 border border-rose-500/20">
                             <ShieldAlert className="w-3 h-3" />
-                            {t("Excluded")}
+                            TMS
                           </span>
                         )}
                         {!excluded && (
                           <span className="text-slate-500 text-[10px] uppercase font-semibold">
-                            Recorded
+                            MS
                           </span>
                         )}
                       </td>

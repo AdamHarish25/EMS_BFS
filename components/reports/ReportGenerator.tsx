@@ -375,7 +375,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           formatCellNumber(r.relative_humidity),
           (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
           r.dp2 != null ? formatCellNumber(r.dp2) : '-',
-          'Recorded'
+          'MS'
         ]);
 
         autoTable(pdf, {
@@ -445,7 +445,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           formatCellNumber(r.relative_humidity),
           (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
           r.dp2 != null ? formatCellNumber(r.dp2) : '-',
-          'Excluded'
+          'TMS'
         ]);
 
         autoTable(pdf, {
