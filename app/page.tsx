@@ -151,21 +151,21 @@ export default function Dashboard() {
 
             // Re-evaluate to get specific messages
             if (temperature > 25) {
-              roomAnomalies.push(`Suhu kritis: ${temperature.toFixed(1)}°C`);
+              roomAnomalies.push(`Suhu tindakan: ${temperature.toFixed(1)}°C`);
               roomState.push("TEMP_CRIT");
               isCriticalGlobal = true;
             } else if (temperature > 24) {
-              roomAnomalies.push(`Suhu warning: ${temperature.toFixed(1)}°C`);
+              roomAnomalies.push(`Suhu waspada: ${temperature.toFixed(1)}°C`);
               roomState.push("TEMP_WARN");
             }
 
             if (relative_humidity > 60) {
-              roomAnomalies.push(`RH kritis: ${relative_humidity.toFixed(1)}%`);
+              roomAnomalies.push(`RH tindakan: ${relative_humidity.toFixed(1)}%`);
               roomState.push("RH_CRIT");
               isCriticalGlobal = true;
             } else if (relative_humidity > 59) {
               roomAnomalies.push(
-                `RH warning: ${relative_humidity.toFixed(1)}%`,
+                `RH waspada: ${relative_humidity.toFixed(1)}%`,
               );
               roomState.push("RH_WARN");
             }
@@ -177,13 +177,13 @@ export default function Dashboard() {
             ) {
               if (differential_pressure <= 5) {
                 roomAnomalies.push(
-                  `DP kritis: ${differential_pressure.toFixed(1)} Pa`,
+                  `DP tindakan: ${differential_pressure.toFixed(1)} Pa`,
                 );
                 roomState.push("DP_CRIT");
                 isCriticalGlobal = true;
               } else if (differential_pressure <= 8) {
                 roomAnomalies.push(
-                  `DP warning: ${differential_pressure.toFixed(1)} Pa`,
+                  `DP waspada: ${differential_pressure.toFixed(1)} Pa`,
                 );
                 roomState.push("DP_WARN");
               }
@@ -192,11 +192,11 @@ export default function Dashboard() {
             // DP1
             if (dp1 !== undefined && dp1 !== null) {
               if (dp1 <= 5) {
-                roomAnomalies.push(`DP 1 kritis: ${dp1.toFixed(1)} Pa`);
+                roomAnomalies.push(`DP 1 tindakan: ${dp1.toFixed(1)} Pa`);
                 roomState.push("DP1_CRIT");
                 isCriticalGlobal = true;
               } else if (dp1 <= 8) {
-                roomAnomalies.push(`DP 1 warning: ${dp1.toFixed(1)} Pa`);
+                roomAnomalies.push(`DP 1 waspada: ${dp1.toFixed(1)} Pa`);
                 roomState.push("DP1_WARN");
               }
             }
@@ -204,11 +204,11 @@ export default function Dashboard() {
             // DP2
             if (dp2 !== undefined && dp2 !== null) {
               if (dp2 <= 5) {
-                roomAnomalies.push(`DP 2 kritis: ${dp2.toFixed(1)} Pa`);
+                roomAnomalies.push(`DP 2 tindakan: ${dp2.toFixed(1)} Pa`);
                 roomState.push("DP2_CRIT");
                 isCriticalGlobal = true;
               } else if (dp2 <= 8) {
-                roomAnomalies.push(`DP 2 warning: ${dp2.toFixed(1)} Pa`);
+                roomAnomalies.push(`DP 2 waspada: ${dp2.toFixed(1)} Pa`);
                 roomState.push("DP2_WARN");
               }
             }
@@ -251,6 +251,11 @@ export default function Dashboard() {
   const activeRooms = Object.values(realtimeData).filter(d => !!d).length;
   const criticalRooms = Object.values(realtimeData).filter(d => d && d.status === 'critical').length;
   const warningRooms = Object.values(realtimeData).filter(d => d && d.status === 'warning').length;
+
+  useEffect(() => {
+    // Broadcast status to the sidebar for instant visual sync
+    window.dispatchEvent(new CustomEvent('ems-system-status', { detail: { isOnline: activeRooms > 0 } }));
+  }, [activeRooms]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -341,7 +346,7 @@ export default function Dashboard() {
                             : "bg-emerald-500/20 text-emerald-400 border-emerald-500/50"
                       }`}
                     >
-                      {status}
+                      {t(status)}
                     </div>
                   )}
 

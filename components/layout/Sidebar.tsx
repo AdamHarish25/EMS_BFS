@@ -32,15 +32,38 @@ export default function Sidebar() {
       setIsOnline(navigator.onLine);
     }
 
-    const handleOnline = () => setIsOnline(true);
+    const checkSystemHealth = async () => {
+      if (!navigator.onLine) {
+        setIsOnline(false);
+        return;
+      }
+      try {
+        // Ping the backend to check if the database and API are truly alive
+        const res = await fetch('/api/latest-reading?unit_id=Dispensing%201', { cache: 'no-store' });
+        setIsOnline(res.ok);
+      } catch (error) {
+        setIsOnline(false);
+      }
+    };
+
+    checkSystemHealth();
+    const interval = setInterval(checkSystemHealth, 60000); // Check every 60 seconds
+
+    const handleOnline = () => checkSystemHealth();
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    
+    // Listen to custom event from dashboard for instant sync
+    const handleStatusSync = (e: any) => setIsOnline(e.detail.isOnline);
+    window.addEventListener('ems-system-status', handleStatusSync);
 
     return () => {
+      clearInterval(interval);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('ems-system-status', handleStatusSync);
     };
   }, []);
 
