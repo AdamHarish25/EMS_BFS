@@ -123,14 +123,14 @@ export async function POST(req: Request) {
 
     // Daftar penerima
     const daftarPenerima = [
-      // "andi.riwanto@dankosfarma.com",
-      // "Wayan.Yudhistira@dankosfarma.com",
-      // "Eugenius.Wirawan@dankosfarma.com",
-      // "Chatrin.yusuf@dankosfarma.com",
-      // "Rabulas.Nugroho@dankosfarma.com",
-      // "dhani.putra@dankosfarma.com",
-      // "seraf.oryzanandi@dankosfarma.com",
-      // "anton.hermansyah@dankosfarma.com",
+      "andi.riwanto@dankosfarma.com",
+      "Wayan.Yudhistira@dankosfarma.com",
+      "Eugenius.Wirawan@dankosfarma.com",
+      "Chatrin.yusuf@dankosfarma.com",
+      "Rabulas.Nugroho@dankosfarma.com",
+      "dhani.putra@dankosfarma.com",
+      "seraf.oryzanandi@dankosfarma.com",
+      "anton.hermansyah@dankosfarma.com",
       "nebulizereyedrop@gmail.com"
     ].join(', ');
 
@@ -142,8 +142,8 @@ export async function POST(req: Request) {
       port: 465,
       secure: true,
       auth: {
-        user: process.env.EMAIL_USER || "nebulizereyedrop@gmail.com",
-        pass: process.env.EMAIL_PASS || "mwqm yczf knhi rjby" // Ganti ini nanti di .env.local
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS // Ganti ini nanti di .env.local
       }
     });
 
@@ -156,7 +156,7 @@ export async function POST(req: Request) {
     messageText += `Harap segera lakukan pengecekan terkait status Environmental Monitoring System (EMS)`;
 
     const mailOptions = {
-      from: '"EMS Monitor" <' + (process.env.EMAIL_USER || "nebulizereyedrop@gmail.com") + '>',
+      from: '"EMS Monitor" <' + process.env.EMAIL_USER + '>',
       to: daftarPenerima,
       subject: `[${statusLevel}] Peringatan Fasilitas - EMS BFS`,
       text: messageText,
