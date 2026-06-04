@@ -12,6 +12,7 @@ interface Attribute {
   unit: string;
   required: boolean;
   deletable: boolean;
+  suffix?: string; // For additional DPs, e.g., " - DP 2"
 }
 
 export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => void }) {
@@ -22,16 +23,26 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [attributes, setAttributes] = useState<Attribute[]>([
-    { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', unit: 'C', required: true, deletable: false },
-    { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', unit: '%', required: true, deletable: false },
-    { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', unit: 'Pa', required: true, deletable: false }
+    { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', unit: 'C', required: true, deletable: false, suffix: '' },
+    { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', unit: '%', required: true, deletable: false, suffix: '' },
+    { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', unit: 'Pa', required: true, deletable: false, suffix: '' }
   ]);
 
   const addDifferentialPressure = () => {
+    const dpCount = attributes.filter(attr => attr.targetColumn === 'differential_pressure').length;
     const newId = `dp${attributes.length + 1}`;
     setAttributes([
       ...attributes,
-      { id: newId, name: `New Parameter ${attributes.length - 1}`, externalLogId: '', targetColumn: 'differential_pressure', unit: 'Pa', required: false, deletable: true }
+      { 
+        id: newId, 
+        name: `Differential Pressure ${dpCount + 1}`, 
+        externalLogId: '', 
+        targetColumn: 'differential_pressure', 
+        unit: 'Pa', 
+        required: false, 
+        deletable: true,
+        suffix: ` - DP ${dpCount + 1}`
+      }
     ]);
   };
 
@@ -64,9 +75,9 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
 
     const rooms = attributes.map(attr => ({
       external_log_id: Number(attr.externalLogId),
-      room_name: roomName,
+      room_name: roomName + (attr.suffix || ''),
       target_column: attr.targetColumn,
-      unit_display_name: attr.unit,
+      unit_display_name: attr.deletable ? `${roomName + (attr.suffix || '')} - ${attr.name}` : roomName,
       line: line,
       status: status
     }));
@@ -90,9 +101,9 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
       setLine('');
       setStatus('Active');
       setAttributes([
-        { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', unit: 'C', required: true, deletable: false },
-        { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', unit: '%', required: true, deletable: false },
-        { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', unit: 'Pa', required: true, deletable: false }
+        { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', unit: 'C', required: true, deletable: false, suffix: '' },
+        { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', unit: '%', required: true, deletable: false, suffix: '' },
+        { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', unit: 'Pa', required: true, deletable: false, suffix: '' }
       ]);
     } catch (err: any) {
       toast.error(err.message || t("Error Add Room"));
@@ -119,7 +130,7 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
             className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-            placeholder="e.g. Dispensing 1"
+            placeholder="e.g. Transfer Plastic Moulding"
           />
         </div>
 
@@ -163,18 +174,32 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Unit</label>
-                  <select
-                    value={attr.unit}
-                    onChange={(e) => updateAttribute(attr.id, 'unit', e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                  >
-                    {unitOptions.map(unit => (
-                      <option key={unit} value={unit}>{unit}</option>
-                    ))}
-                  </select>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Room Name</label>
+                  <input
+                    type="text"
+                    value={attr.deletable ? `${roomName + (attr.suffix || '')} - ${attr.name}` : roomName}
+                    readOnly
+                    className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-600 dark:text-slate-300 focus:outline-none cursor-not-allowed"
+                  />
                 </div>
               </div>
+              {attr.deletable && (
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Suffix</label>
+                  <input
+                    type="text"
+                    value={attr.suffix || ''}
+                    onChange={(e) => updateAttribute(attr.id, 'suffix', e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    placeholder="e.g. - DP 2"
+                  />
+                </div>
+              )}
+              {attr.deletable && (
+                <div className="mt-2 text-xs text-slate-400">
+                  Room name: {roomName || '[Room Name]'}{attr.suffix || ' - DP X'}
+                </div>
+              )}
             </div>
           ))}
         </div>
