@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Thermometer, Droplets, Wind } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const ROOM_LIST = [
+const DEFAULT_ROOM_LIST = [
   "Dispensing 1",
   "Dispensing 2",
   "Mixing",
@@ -16,6 +16,7 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const [realtimeData, setRealtimeData] = useState<Record<string, any>>({});
   const [lastFetchTime, setLastFetchTime] = useState<string>("");
+  const [roomList, setRoomList] = useState<string[]>(DEFAULT_ROOM_LIST);
 
   const getStatus = (
     temp: number,
@@ -50,12 +51,19 @@ export default function Dashboard() {
 
   // Polling latest reading untuk SEMUA ruangan
   useEffect(() => {
+    // Fetch rooms on mount and listen for new room events
+    fetchRooms();
+    const handleRoomAdded = () => {
+      fetchRooms();
+    };
+    window.addEventListener("ems-room-added", handleRoomAdded);
+
     let interval: NodeJS.Timeout;
 
     const fetchAllRealtime = async () => {
       try {
         // Melakukan fetch ke semua ruangan secara bersamaan menggunakan Promise.all
-        const promises = ROOM_LIST.map(async (roomName) => {
+        const promises = roomList.map(async (roomName) => {
           const res = await fetch(
             `/api/latest-reading?unit_id=${encodeURIComponent(roomName)}`,
           );
@@ -243,11 +251,29 @@ export default function Dashboard() {
     // Refresh setiap 10 detik (atau sesuaikan dengan kebutuhan, misal 60000 untuk 1 menit)
     interval = setInterval(fetchAllRealtime, 360000);
 
-    return () => clearInterval(interval);
-  }, []); // Hapus dependencies selectedRoom karena sekarang kita tarik semua
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("ems-room-added", handleRoomAdded);
+    };
+  }, [roomList]); // Refresh polling when room list changes
+
+  // Fetch all rooms from API
+  const fetchRooms = async () => {
+    try {
+      const res = await fetch("/api/rooms");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          setRoomList(data);
+        }
+      }
+    } catch (err) {
+      console.error("Gagal menarik daftar ruangan:", err);
+    }
+  };
 
   // Hitung KPI
-  const totalRooms = ROOM_LIST.length;
+  const totalRooms = roomList.length;
   const activeRooms = Object.values(realtimeData).filter(d => !!d).length;
   const criticalRooms = Object.values(realtimeData).filter(d => d && d.status === 'critical').length;
   const warningRooms = Object.values(realtimeData).filter(d => d && d.status === 'warning').length;
@@ -306,7 +332,7 @@ export default function Dashboard() {
 
       {/* REAL-TIME ROOMS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
-        {ROOM_LIST.map((room) => {
+        {roomList.map((room) => {
           const data = realtimeData[room];
           const isConnected = !!data;
 

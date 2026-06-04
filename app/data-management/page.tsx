@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const NODE_RED =
   process.env.NEXT_PUBLIC_NODE_RED_URL || "http://10.165.40.127:1880";
 
-const ROOM_LIST = [
+const DEFAULT_ROOM_LIST = [
   "Dispensing 1",
   "Dispensing 2",
   "Mixing",
@@ -28,6 +28,7 @@ export default function DataManagementPage() {
   const [selectedRoom, setSelectedRoom] = useState("Pilih Ruangan");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [roomList, setRoomList] = useState<string[]>(DEFAULT_ROOM_LIST);
   const [dataInterval, setDataInterval] = useState("raw");
   const [dataFilter, setDataFilter] = useState("Semua Data");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +38,20 @@ export default function DataManagementPage() {
     if (temp > 25 || rh > 60 || dp <= 5) return "critical";
     if (temp > 24 || rh > 59 || dp <= 8) return "warning";
     return "normal";
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const res = await fetch("/api/rooms");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          setRoomList(data);
+        }
+      }
+    } catch (err) {
+      console.error("Gagal menarik daftar ruangan:", err);
+    }
   };
 
   const fetchExclusions = async () => {
@@ -57,7 +72,15 @@ export default function DataManagementPage() {
   };
 
   useEffect(() => {
+    fetchRooms();
     fetchExclusions();
+    const handleRoomAdded = () => {
+      fetchRooms();
+    };
+    window.addEventListener("ems-room-added", handleRoomAdded);
+    return () => {
+      window.removeEventListener("ems-room-added", handleRoomAdded);
+    };
   }, []);
 
   const handleFetchData = async () => {
@@ -224,7 +247,7 @@ export default function DataManagementPage() {
               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm transition-all shadow-inner"
             >
               <option value="Pilih Ruangan">{t("Select Room 2")}</option>
-              {ROOM_LIST.map(r => <option key={r} value={r}>{r}</option>)}
+              {roomList.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
           <div>
