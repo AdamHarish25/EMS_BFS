@@ -49,14 +49,22 @@ export default function Dashboard() {
     return "normal";
   };
 
-  // Polling latest reading untuk SEMUA ruangan
+  // Fetch rooms on mount and listen for new room events
   useEffect(() => {
-    // Fetch rooms on mount and listen for new room events
     fetchRooms();
     const handleRoomAdded = () => {
       fetchRooms();
     };
     window.addEventListener("ems-room-added", handleRoomAdded);
+    
+    return () => {
+      window.removeEventListener("ems-room-added", handleRoomAdded);
+    };
+  }, []);
+
+  // Polling latest reading untuk SEMUA ruangan
+  useEffect(() => {
+    if (roomList.length === 0) return;
 
     let interval: NodeJS.Timeout;
 
@@ -239,6 +247,7 @@ export default function Dashboard() {
             trackingState: trackingState,
             isCritical: isCriticalGlobal,
             lastFetchTime: timeString,
+            rawValues: newRealtimeData,
           }),
         }).catch((err) => console.error("Gagal kirim email alert:", err));
         // ------------------------------------
@@ -253,7 +262,6 @@ export default function Dashboard() {
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener("ems-room-added", handleRoomAdded);
     };
   }, [roomList]); // Refresh polling when room list changes
 

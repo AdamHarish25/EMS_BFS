@@ -2,124 +2,113 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { query } from '@/lib/db';
 
-// Variabel global untuk menyimpan state anti-spam
-// (Akan bertahan selama server berjalan)
-let lastSystemState = "";
-
-// Tracker untuk waktu pertama kali DP anomaly terdeteksi per ruangan
-// Format: { "Nama Ruangan": timestamp_ms }
-let dpAnomalyTracker: Record<string, number> = {};
+// Tracker global untuk waktu deteksi anomali per ruangan dan nilai terakhir yang dikirim
+// Format: { "Nama Ruangan": { firstSeen: number, lastSentTime: number, lastSentValues: any } }
+let anomalyTracker: Record<string, { firstSeen: number, lastSentTime: number, lastSentValues: any }> = {};
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { anomalies, trackingState, isCritical, lastFetchTime } = body;
-
-    const currentSystemState = trackingState ? trackingState.join(', ') : "";
+    const { anomalies, trackingState, isCritical, lastFetchTime, rawValues } = body;
 
     // JIKA TIDAK ADA ANOMALI SAMA SEKALI
     if (!anomalies || anomalies.length === 0) {
       // RESET MEMORI JIKA SEMUA RUANGAN SUDAH NORMAL
-      lastSystemState = "";
+      anomalyTracker = {};
       return NextResponse.json({ message: 'No anomalies, state cleared' });
     }
 
     // --------------------------------------------------------------------
-    // FILTER ANTI-SPAM TINGKAT TINGGI & LOGIC 6 MENIT DP
+    // FILTER ANTI-SPAM: DURASI 10 MENIT & PERUBAHAN SIGNIFIKAN
     // --------------------------------------------------------------------
-    const SIX_MINUTES_MS = 6 * 60 * 1000;
+    const TEN_MINUTES_MS = 5 * 60 * 1000;
     const now = Date.now();
     let filteredAnomalies: string[] = [];
-    let filteredTrackingState: string[] = [];
+    let roomsToUpdate: string[] = [];
 
-    // Parse trackingState to handle DP 6-minute logic
-    for (let i = 0; i < trackingState.length; i++) {
-      const stateStr = trackingState[i];
-      const anomalyStr = anomalies[i];
-
-      // Extract room name from stateStr, e.g., "Dispensing 1(TEMP_CRIT|DP_WARN)" -> "Dispensing 1"
-      const match = stateStr.match(/^(.*?)\((.*?)\)$/);
-      if (match) {
-        const room = match[1];
-        const issues = match[2].split('|');
-
-        // Check if there are any DP issues
-        const hasDpIssue = issues.some((issue: string) => issue.startsWith('DP'));
-        const hasNonDpIssue = issues.some((issue: string) => !issue.startsWith('DP'));
-
-        if (hasDpIssue) {
-          if (!dpAnomalyTracker[room]) {
-            // First time detecting DP issue for this room
-            dpAnomalyTracker[room] = now;
-          }
-
-          const timeElapsed = now - dpAnomalyTracker[room];
-          if (timeElapsed >= SIX_MINUTES_MS) {
-            // DP issue has persisted for >= 6 minutes, include everything
-            filteredAnomalies.push(anomalyStr);
-            filteredTrackingState.push(stateStr);
-          } else {
-            // DP issue is < 6 minutes. Only include non-DP issues if they exist
-            if (hasNonDpIssue) {
-              // We need to filter out the DP text from anomalyStr
-              // anomalyStr format: "🔹 [Room]: Suhu kritis: 26.0°C, DP warning: 7.0 Pa"
-              const parts = anomalyStr.split(']: ');
-              if (parts.length === 2) {
-                const prefix = parts[0] + ']: ';
-                const anomaliesList = parts[1].split(', ');
-                const nonDpAnomaliesList = anomaliesList.filter((a: string) => !a.includes('DP'));
-
-                if (nonDpAnomaliesList.length > 0) {
-                  filteredAnomalies.push(prefix + nonDpAnomaliesList.join(', '));
-
-                  const nonDpIssues = issues.filter((issue: string) => !issue.startsWith('DP'));
-                  filteredTrackingState.push(`${room}(${nonDpIssues.join('|')})`);
-                }
-              }
-            }
-          }
-        } else {
-          // No DP issues, reset tracker for this room and include as is
-          delete dpAnomalyTracker[room];
-          filteredAnomalies.push(anomalyStr);
-          filteredTrackingState.push(stateStr);
-        }
-      } else {
-        // Fallback if parsing fails
-        filteredAnomalies.push(anomalyStr);
-        filteredTrackingState.push(stateStr);
-      }
-    }
-
-    // Clean up tracker for rooms that are no longer in trackingState
-    const currentRooms = trackingState.map((s: string) => {
+    // Ambil daftar ruangan yang saat ini memiliki anomali
+    const currentAbnormalRooms = trackingState.map((s: string) => {
       const match = s.match(/^(.*?)\(/);
       return match ? match[1] : null;
     }).filter(Boolean);
 
-    Object.keys(dpAnomalyTracker).forEach(room => {
-      if (!currentRooms.includes(room)) {
-        delete dpAnomalyTracker[room];
+    // Bersihkan ruangan yang sudah kembali normal dari tracker
+    Object.keys(anomalyTracker).forEach(room => {
+      if (!currentAbnormalRooms.includes(room)) {
+        delete anomalyTracker[room];
       }
     });
 
-    const currentSystemStateFiltered = filteredTrackingState.join(', ');
+    for (let i = 0; i < trackingState.length; i++) {
+      const stateStr = trackingState[i];
+      const anomalyStr = anomalies[i];
 
-    // JIKA SETELAH FILTER DP TIDAK ADA ANOMALI
+      const match = stateStr.match(/^(.*?)\(/);
+      if (!match) continue;
+
+      const room = match[1];
+      const currentValues = rawValues?.[room];
+
+      // Jika baru pertama kali terdeteksi anomali
+      if (!anomalyTracker[room]) {
+        anomalyTracker[room] = {
+          firstSeen: now,
+          lastSentTime: 0,
+          lastSentValues: null
+        };
+      }
+
+      const tracker = anomalyTracker[room];
+      const duration = now - tracker.firstSeen;
+
+      // Syarat 1: Harus berdurasi lebih dari atau sama dengan 10 menit
+      if (duration >= TEN_MINUTES_MS) {
+        let isSignificant = false;
+
+        // Syarat 2: Perubahan nilai harus signifikan
+        if (!tracker.lastSentValues) {
+          // Jika belum pernah dikirim sama sekali, anggap signifikan
+          isSignificant = true;
+        } else if (currentValues) {
+          // Bandingkan dengan yang terakhir dikirim
+          const last = tracker.lastSentValues;
+          const cur = currentValues;
+
+          const tempDiff = Math.abs((cur.temperature || 0) - (last.temperature || 0));
+          const rhDiff = Math.abs((cur.relative_humidity || 0) - (last.relative_humidity || 0));
+
+          let dpDiff = 0, dp1Diff = 0, dp2Diff = 0;
+          if (cur.differential_pressure !== undefined && cur.differential_pressure !== null && last.differential_pressure !== undefined && last.differential_pressure !== null) {
+            dpDiff = Math.abs(cur.differential_pressure - last.differential_pressure);
+          }
+          if (cur.dp1 !== undefined && cur.dp1 !== null && last.dp1 !== undefined && last.dp1 !== null) {
+            dp1Diff = Math.abs(cur.dp1 - last.dp1);
+          }
+          if (cur.dp2 !== undefined && cur.dp2 !== null && last.dp2 !== undefined && last.dp2 !== null) {
+            dp2Diff = Math.abs(cur.dp2 - last.dp2);
+          }
+
+          // Kriteria Signifikan (Bisa disesuaikan batasnya)
+          if (tempDiff >= 0.5 || rhDiff >= 2.0 || dpDiff >= 2.0 || dp1Diff >= 2.0 || dp2Diff >= 2.0) {
+            isSignificant = true;
+          }
+        } else {
+          // Fallback jika rawValues kosong untuk ruangan tersebut (harus dikirim jika > 10m)
+          isSignificant = true;
+        }
+
+        if (isSignificant) {
+          filteredAnomalies.push(anomalyStr);
+          roomsToUpdate.push(room);
+        }
+      }
+    }
+
+    // JIKA TIDAK ADA YANG SIGNIFIKAN ATAU DURASI < 10 MENIT
     if (filteredAnomalies.length === 0) {
-      return NextResponse.json({ message: 'Only DP anomalies under 6 minutes, or no anomalies. Email suppressed.' });
+      return NextResponse.json({ message: 'No significant changes or duration < 10 minutes. Email suppressed.' });
     }
 
-    // Jika status eror ruangan masih SAMA, JANGAN KIRIM EMAIL!
-    if (currentSystemStateFiltered === lastSystemState && currentSystemStateFiltered !== "") {
-      return NextResponse.json({ message: 'Spam prevented: State is identical to previous alert' });
-    }
-
-    // Update currentSystemState to use the filtered version for the rest of the function
-    const finalAnomaliesToReport = filteredAnomalies;
-    const finalTrackingStateToStore = currentSystemStateFiltered;
-
-    // State akan diupdate JIKA email berhasil terkirim (ada di baris bawah)
     // --------------------------------------------------------------------
 
     // Daftar penerima
@@ -133,16 +122,14 @@ export async function POST(req: Request) {
       console.error("Gagal mengambil daftar email dari DB:", err);
     }
 
-
     // Konfigurasi Email
-    // Kita mengambil kredensial dari environment variable agar aman
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
       secure: true,
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS // Ganti ini nanti di .env.local
+        pass: process.env.EMAIL_PASS
       }
     });
 
@@ -151,7 +138,7 @@ export async function POST(req: Request) {
     let messageText = `🚨 ALERT: Parameter ${statusLevel} terdeteksi!\n\n`;
     messageText += `Waktu Tarikan Data Terakhir: ${lastFetchTime}\n`;
     messageText += `Daftar Ruangan:\n`;
-    messageText += finalAnomaliesToReport.join('\n') + `\n\n`;
+    messageText += filteredAnomalies.join('\n') + `\n\n`;
     messageText += `Harap segera lakukan pengecekan terkait status Environmental Monitoring System (EMS)`;
 
     const mailOptions = {
@@ -163,8 +150,15 @@ export async function POST(req: Request) {
 
     await transporter.sendMail(mailOptions);
 
-    // Update state HANYA jika email sukses terkirim tanpa error!
-    lastSystemState = finalTrackingStateToStore;
+    // Update state tracker HANYA jika email sukses terkirim
+    roomsToUpdate.forEach(room => {
+      if (anomalyTracker[room]) {
+        anomalyTracker[room].lastSentTime = now;
+        if (rawValues?.[room]) {
+          anomalyTracker[room].lastSentValues = JSON.parse(JSON.stringify(rawValues[room]));
+        }
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
