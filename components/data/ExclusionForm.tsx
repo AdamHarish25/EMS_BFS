@@ -1,8 +1,9 @@
-"use client";
+'use client';
 import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import CustomDateTimePicker from '@/components/ui/CustomDateTimePicker';
 
 const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.127:1880';
 const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Moulding', 'WIP'];
@@ -10,10 +11,8 @@ const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Pl
 export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAddExclusion: (data: any) => void, readings?: any[] }) {
   const { t } = useLanguage();
   const [unitId, setUnitId] = useState(ROOMS[0]);
-  const [startDate, setStartDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [startDateTime, setStartDateTime] = useState('');
+  const [endDateTime, setEndDateTime] = useState('');
   const [exclusionType, setExclusionType] = useState('Fumigasi');
   const [reason, setReason] = useState('');
   const [statusTag, setStatusTag] = useState('Semua');
@@ -22,13 +21,15 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startDate || !startTime || !endDate || !endTime || !reason) {
+    if (!startDateTime || !endDateTime || !reason) {
       toast.error('Semua kolom harus diisi');
       return;
     }
 
-    const start = new Date(`${startDate}T${startTime}`);
-    const end = new Date(`${endDate}T${endTime}`);
+    const [startDate, startTime] = startDateTime.split('T');
+    const [endDate, endTime] = endDateTime.split('T');
+    const start = new Date(startDateTime);
+    const end = new Date(endDateTime);
     const diffMs = end.getTime() - start.getTime();
     
     if (diffMs <= 0) {
@@ -68,10 +69,8 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
       toast.success(data.message || 'Data berhasil dipindahkan ke tabel Fumigasi');
       onAddExclusion(payload);
 
-      setStartDate('');
-      setStartTime('');
-      setEndDate('');
-      setEndTime('');
+      setStartDateTime('');
+      setEndDateTime('');
       setReason('');
     } catch (err: any) {
       if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
@@ -114,46 +113,22 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             <option value="PM">PM / Preventive Maintenance</option>
           </select>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 text-sm font-medium text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-1">{t("Start Period")}</div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Date")}</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Waktu</label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
-            />
-          </div>
+        <div className="space-y-4">
+          <div className="text-sm font-medium text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-1">{t("Start Period")}</div>
+          <CustomDateTimePicker
+            value={startDateTime}
+            onChange={setStartDateTime}
+            label=""
+            placeholder="Select start date & time"
+          />
 
-          <div className="col-span-2 text-sm font-medium text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-1 mt-2">{t("End Period")}</div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Date")}</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Waktu</label>
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
-            />
-          </div>
+          <div className="text-sm font-medium text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-1">{t("End Period")}</div>
+          <CustomDateTimePicker
+            value={endDateTime}
+            onChange={setEndDateTime}
+            label=""
+            placeholder="Select end date & time"
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

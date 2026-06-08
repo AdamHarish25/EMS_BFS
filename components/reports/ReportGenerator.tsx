@@ -3,11 +3,12 @@ import React, { useState, useRef, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import { Download, FileText, FileBarChart, Calendar, Filter } from 'lucide-react';
+import { Download, FileText, FileBarChart, Filter } from 'lucide-react';
 import ReportChart from './ReportChart';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import CustomDateTimePicker from '@/components/ui/CustomDateTimePicker';
 
 export default function ReportGenerator({ readings, exclusions }: { readings: any[], exclusions: any[] }) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -167,6 +168,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             existing.temperature = r.temperature;
             existing.relative_humidity = r.relative_humidity;
             existing.differential_pressure = r.differential_pressure;
+            existing.comment = r.comment; // Preserve comment from main (non-DP) reading
             if (r.status !== 'normal' || !existing.status) existing.status = r.status;
           }
         }
@@ -643,30 +645,18 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("Start Date")}</label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-              <input
-                type="datetime-local"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("End Date")}</label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-              <input
-                type="datetime-local"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&::-webkit-calendar-picker-indicator]:invert"
-              />
-            </div>
-          </div>
+          <CustomDateTimePicker
+            value={startDate}
+            onChange={setStartDate}
+            label={t("Start Date")}
+            placeholder="Select start date & time"
+          />
+          <CustomDateTimePicker
+            value={endDate}
+            onChange={setEndDate}
+            label={t("End Date")}
+            placeholder="Select end date & time"
+          />
           {/* Tambahan Kolom Interval */}
           <div>
             <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("Data Interval")}</label>

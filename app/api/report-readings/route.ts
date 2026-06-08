@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         status,
         created_date,
         created_by,
-        comment
+        "comment"
       FROM public."BFS_EMS_Sensor"
     `;
     const values: any[] = [];

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.16",
     "@tanstack/react-query": "^5.36.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -22,6 +23,7 @@
     "nodemailer": "^8.0.7",
     "pg": "^8.20.0",
     "react": "^19.2.6",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.6",
     "recharts": "^2.12.7",
     "sonner": "^1.4.41",

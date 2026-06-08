@@ -110,19 +110,47 @@ export async function GET() {
 
 ## 7. Changes to Report Generator (`components/reports/ReportGenerator.tsx`)
 ### 7.1 Added Comment/Reason Column to Reports
-- **MS (Valid) Table**: Comment column uses `comment` field from sensor reading
-- **TMS (Excluded) Table**: Comment column uses exclusion `reason` field
-- Updated valid/excluded separation to track matching exclusion reason for excluded readings
+- **MS (Valid) Table**: Comment column uses `comment` field from `BFS_EMS_Sensor`
+- **TMS (Excluded) Table**: Comment column uses `reason` field from `BFS_EMS_Fumigasi`
+- Updated grouping logic to preserve comment from the main (non-DP) reading
 - Added "Comment/Reason" column to both tables in the PDF
+
+## 8. Custom Standardized Date/Time Picker
+### 8.1 Replaced Native Browser Pickers with Custom Popover Picker
+- Created a reusable `CustomDateTimePicker` component using:
+  - `react-day-picker`: Custom, accessible calendar picker
+  - `@radix-ui/react-popover`: Standard popover modal
+  - `date-fns`: Date formatting
+- Standardized all date/time pickers across the entire app to use this custom component:
+  - `ExclusionForm.tsx`: Updated
+  - `data-management/page.tsx`: Updated
+  - `ReportGenerator.tsx`: Updated
+- Benefits:
+  - Consistent look and feel across all browsers
+  - Single modal to select both date and time
+  - Reduced chance of forgetting to fill out time/date
+  - Better user experience with a standardized interface
+
+### 8.2 Added Hour/Minute Dropdowns
+- Replaced native time input with separate dropdowns for hours and minutes
+- Hour dropdown: 00 to 23 (24-hour format)
+- Minute dropdown: 00 to 59
+- Improved usability: Easier to select times without typing
+
+## 9. Floating Date Headers in DataTable
+- Updated DataTable date separators to float/stick to the top when scrolling
+- Table header is sticky z-30
+- Date headers are sticky z-10, positioned just below the table header
+- Improved user experience: Can always see which date's data they're viewing
 
 ---
 
-## 8. Build Status
+## 10. Build Status
 All changes have been tested and the build passes successfully!
 
 ---
 
-## 9. Usage Example
+## 10. Usage Example
 1. Navigate to Data Management page
 2. Fill in Room Name: "Transfer Plastic Moulding"
 3. Fill in IDs for Temperature, RH, and DP 1

@@ -8,6 +8,7 @@ import ExclusionList from "@/components/data/ExclusionList";
 import DataTable from "@/components/data/DataTable";
 import RoomForm from "@/components/data/RoomForm";
 import { useLanguage } from "@/contexts/LanguageContext";
+import CustomDateTimePicker from "@/components/ui/CustomDateTimePicker";
 
 const NODE_RED =
   process.env.NEXT_PUBLIC_NODE_RED_URL || "http://10.165.40.127:1880";
@@ -250,24 +251,18 @@ export default function DataManagementPage() {
               {roomList.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{t("Start Date")}</label>
-            <input
-              type="datetime-local"
-              value={startDate}
-              onChange={(e) => { setStartDate(e.target.value); setHasFetched(false); }}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm [&::-webkit-calendar-picker-indicator]:invert transition-all shadow-inner"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{t("End Date")}</label>
-            <input
-              type="datetime-local"
-              value={endDate}
-              onChange={(e) => { setEndDate(e.target.value); setHasFetched(false); }}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm [&::-webkit-calendar-picker-indicator]:invert transition-all shadow-inner"
-            />
-          </div>
+          <CustomDateTimePicker
+            value={startDate}
+            onChange={(value) => { setStartDate(value); setHasFetched(false); }}
+            label={t("Start Date")}
+            placeholder="Select start date & time"
+          />
+          <CustomDateTimePicker
+            value={endDate}
+            onChange={(value) => { setEndDate(value); setHasFetched(false); }}
+            label={t("End Date")}
+            placeholder="Select end date & time"
+          />
           <div>
             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{t("Data Interval")}</label>
             <select

@@ -215,7 +215,7 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
       </div>
       <div className="overflow-x-auto max-h-[800px] custom-scrollbar">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950/80 sticky top-0 z-20 backdrop-blur-sm shadow-sm">
+          <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950/90 sticky top-0 z-30 backdrop-blur-md shadow-md">
             <tr>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Time")}</th>
               <th className="px-6 py-4 font-semibold tracking-wider">{t("Unit")}</th>
@@ -250,8 +250,8 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
                 // Jika tanggal di baris ini beda dengan baris sebelumnya, sisipkan Pemisah!
                 if (dateStr !== lastDateStr) {
                   dateSeparator = (
-                    <tr key={`header-${dateStr}`} className="bg-white dark:bg-slate-900/90 sticky top-[48px] z-10 backdrop-blur-md shadow-md border-y border-slate-300 dark:border-slate-700/50">
-                      <td colSpan={6} className="px-6 py-2.5 text-xs font-bold text-blue-400 uppercase tracking-wider">
+                    <tr key={`header-${dateStr}`} className="bg-white/95 dark:bg-slate-900/95 sticky top-[82px] z-10 backdrop-blur-md shadow-lg border-y border-slate-200 dark:border-slate-700">
+                      <td colSpan={7} className="px-6 py-2 text-xs font-bold text-blue-500 uppercase tracking-wider">
                         {displayDate}
                       </td>
                     </tr>
