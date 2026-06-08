@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { query } from '@/lib/db';
 
 // Variabel global untuk menyimpan state anti-spam
 // (Akan bertahan selama server berjalan)
@@ -122,17 +123,15 @@ export async function POST(req: Request) {
     // --------------------------------------------------------------------
 
     // Daftar penerima
-    const daftarPenerima = [
-      "andi.riwanto@dankosfarma.com",
-      "Wayan.Yudhistira@dankosfarma.com",
-      "Eugenius.Wirawan@dankosfarma.com",
-      "Chatrin.yusuf@dankosfarma.com",
-      "Rabulas.Nugroho@dankosfarma.com",
-      "dhani.putra@dankosfarma.com",
-      "seraf.oryzanandi@dankosfarma.com",
-      "anton.hermansyah@dankosfarma.com",
-      "nebulizereyedrop@gmail.com"
-    ].join(', ');
+    let daftarPenerima = "nebulizereyedrop@gmail.com"; // Fallback default
+    try {
+      const resEmails = await query('SELECT email FROM "BFS_EMS_Emails"');
+      if (resEmails.rows.length > 0) {
+        daftarPenerima = resEmails.rows.map((r: any) => r.email).join(', ');
+      }
+    } catch (err) {
+      console.error("Gagal mengambil daftar email dari DB:", err);
+    }
 
 
     // Konfigurasi Email

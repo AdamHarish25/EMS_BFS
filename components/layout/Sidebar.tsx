@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, Database, FileText, Settings, ShieldAlert, Globe, Sun, Moon } from 'lucide-react';
+import { Activity, Database, FileText, Settings, ShieldAlert, Globe, Sun, Moon, Mail } from 'lucide-react';
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -16,6 +16,7 @@ const navItems = [
   { key: 'DashboardMenu', href: '/', icon: Activity },
   { key: 'DataManagementMenu', href: '/data-management', icon: Database },
   { key: 'ReportsMenu', href: '/reports', icon: FileText },
+  { key: 'EmailAlertsMenu', href: '/emails', icon: Mail },
 ];
 
 export default function Sidebar() {

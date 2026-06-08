@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, Database, FileText } from 'lucide-react';
+import { Activity, Database, FileText, Mail } from 'lucide-react';
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -13,6 +13,7 @@ const navItems = [
   { name: 'Dashboard', href: '/', icon: Activity },
   { name: 'Data', href: '/data-management', icon: Database },
   { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Emails', href: '/emails', icon: Mail },
 ];
 
 export default function MobileNav() {
