@@ -1,6 +1,6 @@
-# Room Form & Dashboard Changes Documentation
+# Room Form, Dashboard & Report Changes Documentation
 
-This document summarizes all the changes made to the EMS BFS Dashboard, including the Room Addition Form and Dynamic Dashboard Updates.
+This document summarizes all the changes made to the EMS BFS Dashboard, including the Room Addition Form, Dynamic Dashboard Updates, and Report Improvements.
 
 ## 1. Overview
 The changes include:
@@ -8,6 +8,7 @@ The changes include:
 - Dynamic room list that fetches from the database instead of using hardcoded values
 - Automatic refresh of the dashboard and data management page when new rooms are added
 - New API endpoint for fetching all rooms from the database
+- Added Comment/Reason column to both valid and excluded data tables in reports
 
 ---
 
@@ -59,7 +60,7 @@ Removed the unused `unit` field and validation since we're no longer using a uni
 ## 3. Changes to Add Room API (`app/api/add-room/route.ts`)
 - Updated to accept an array of room entries instead of a single entry
 - Added database transaction (BEGIN/COMMIT/ROLLBACK) for data consistency
-- Each room entry is inserted into the database
+- Each room entry in the array is inserted into the database
 - Returns all inserted rooms in the response
 
 ---
@@ -107,12 +108,21 @@ export async function GET() {
 
 ---
 
-## 7. Build Status
+## 7. Changes to Report Generator (`components/reports/ReportGenerator.tsx`)
+### 7.1 Added Comment/Reason Column to Reports
+- **MS (Valid) Table**: Comment column uses `comment` field from sensor reading
+- **TMS (Excluded) Table**: Comment column uses exclusion `reason` field
+- Updated valid/excluded separation to track matching exclusion reason for excluded readings
+- Added "Comment/Reason" column to both tables in the PDF
+
+---
+
+## 8. Build Status
 All changes have been tested and the build passes successfully!
 
 ---
 
-## 8. Usage Example
+## 9. Usage Example
 1. Navigate to Data Management page
 2. Fill in Room Name: "Transfer Plastic Moulding"
 3. Fill in IDs for Temperature, RH, and DP 1
@@ -121,3 +131,4 @@ All changes have been tested and the build passes successfully!
 6. Select Line and Status
 7. Click "Add Room"
 8. The new room will automatically appear on the System Dashboard and Data Management room list!
+9. When generating reports, excluded data will now show the exclusion reason in the new column!

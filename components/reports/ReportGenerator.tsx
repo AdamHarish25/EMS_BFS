@@ -225,6 +225,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       // BACA LANGSUNG ANGKA MENTAH! 99% lebih ringan tanpa new Date()
       const readingTime = r.timestampValue;
       let isExc = false;
+      let matchingExclusionReason = '';
 
       for (let j = 0; j < parsedExclusions.length; j++) {
         const exc = parsedExclusions[j];
@@ -248,12 +249,13 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             }
           }
           isExc = true;
+          matchingExclusionReason = exc.reason || '';
           break;
         }
       }
 
-      if (isExc) excluded.push(r);
-      else valid.push(r);
+      if (isExc) excluded.push({ ...r, exclusionReason: matchingExclusionReason });
+      else valid.push({ ...r, exclusionReason: '' });
     }
     return { validReadings: valid, excludedReadings: excluded };
   }, [dateFilteredReadings, parsedExclusions]);
@@ -375,12 +377,13 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           formatCellNumber(r.relative_humidity),
           (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
           r.dp2 != null ? formatCellNumber(r.dp2) : '-',
-          'MS'
+          'MS',
+          r.comment || '-'
         ]);
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure (Pa)', 'Differential Pressure 2 (Pa)', 'Status']],
+          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure (Pa)', 'Differential Pressure 2 (Pa)', 'Status', 'Comment/Reason']],
           body: validRows,
           theme: 'striped',
           headStyles: { fillColor: [59, 130, 246] },
@@ -445,12 +448,13 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           formatCellNumber(r.relative_humidity),
           (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
           r.dp2 != null ? formatCellNumber(r.dp2) : '-',
-          'TMS'
+          'TMS',
+          r.exclusionReason || '-'
         ]);
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure 1 / Differential Pressure', 'Differential Pressure 2 (Pa)', 'Status']],
+          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure 1 / Differential Pressure', 'Differential Pressure 2 (Pa)', 'Status', 'Comment/Reason']],
           body: excludedRows,
           theme: 'striped',
           headStyles: { fillColor: [239, 68, 68] },
