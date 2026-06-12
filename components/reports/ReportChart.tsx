@@ -113,7 +113,7 @@ function MetricChart({
             )}
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={true} />
+        <CartesianGrid strokeDasharray="3 3" stroke="black" vertical={true} />
         <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={true} axisLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }} />
         <YAxis
           stroke="#64748b"
@@ -124,19 +124,19 @@ function MetricChart({
           allowDataOverflow
           tickFormatter={(val) => Number(val).toFixed(2)}
         />
-        <ReferenceLine 
-          y={warningLimit} 
-          stroke="#f59e0b" 
-          strokeDasharray="4 4" 
+        <ReferenceLine
+          y={warningLimit}
+          stroke="#f59e0b"
+          strokeDasharray="4 4"
           strokeWidth={1}
-          label={{ position: isGreater ? 'insideBottomLeft' : 'insideTopLeft', value: 'Waspada', fill: '#f59e0b', fontSize: 10, fontWeight: 'bold' }} 
+          label={{ position: isGreater ? 'insideBottomLeft' : 'insideTopLeft', value: 'Waspada', fill: '#f59e0b', fontSize: 10, fontWeight: 'bold' }}
         />
-        <ReferenceLine 
-          y={criticalLimit} 
-          stroke="#ef4444" 
-          strokeDasharray="4 4" 
+        <ReferenceLine
+          y={criticalLimit}
+          stroke="#ef4444"
+          strokeDasharray="4 4"
           strokeWidth={1.5}
-          label={{ position: isGreater ? 'insideTopLeft' : 'insideBottomLeft', value: 'Tindakan', fill: '#ef4444', fontSize: 10, fontWeight: 'bold' }} 
+          label={{ position: isGreater ? 'insideTopLeft' : 'insideBottomLeft', value: 'Tindakan', fill: '#ef4444', fontSize: 10, fontWeight: 'bold' }}
         />
         <Tooltip
           contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px' }}
