@@ -48,6 +48,21 @@ export async function POST(req: Request) {
 
     await client.query('COMMIT');
 
+    // --- AUDIT TRAIL ---
+    try {
+      const { createAuditLog } = await import('@/lib/audit-logger');
+      await createAuditLog({
+        action: 'CREATE',
+        module: 'ROOM_MANAGEMENT',
+        description: `Menambahkan ${insertedRooms.length} ruangan baru`,
+        newValues: insertedRooms,
+        routePath: '/api/add-room'
+      });
+    } catch (auditError) {
+      console.error('Failed to record audit log:', auditError);
+    }
+    // -------------------
+
     return NextResponse.json({ 
       success: true, 
       message: 'Berhasil menambahkan ruangan baru',
