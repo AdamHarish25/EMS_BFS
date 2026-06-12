@@ -113,13 +113,13 @@ function MetricChart({
             )}
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-        <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={true} />
+        <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={true} axisLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }} />
         <YAxis
           stroke="#64748b"
           fontSize={11}
-          tickLine={false}
-          axisLine={false}
+          tickLine={true}
+          axisLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }}
           domain={[yMin, yMax]}
           allowDataOverflow
         />
