@@ -122,6 +122,7 @@ function MetricChart({
           axisLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }}
           domain={[yMin, yMax]}
           allowDataOverflow
+          tickFormatter={(val) => Number(val).toFixed(2)}
         />
         <ReferenceLine 
           y={warningLimit} 
