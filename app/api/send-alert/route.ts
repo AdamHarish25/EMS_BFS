@@ -141,6 +141,7 @@ export async function POST(req: Request) {
     messageText += `Daftar Ruangan:\n`;
     messageText += filteredAnomalies.join('\n') + `\n\n`;
     messageText += `Harap segera lakukan pengecekan terkait status Environmental Monitoring System (EMS)`;
+    messageText += `Link EMS: http://10.165.40.13:3000/`;
 
     const mailOptions = {
       from: '"EMS Monitor" <' + process.env.EMAIL_USER + '>',
