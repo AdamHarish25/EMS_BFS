@@ -10,6 +10,22 @@ export default function EmailAlertsManager() {
   const [addedBy, setAddedBy] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [alarmDuration, setAlarmDuration] = useState<number>(5);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ems-alarm-duration');
+    if (saved) {
+      setAlarmDuration(parseInt(saved, 10));
+    }
+  }, []);
+
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = parseInt(e.target.value, 10) || 1;
+    if (val > 15) val = 15;
+    if (val < 1) val = 1;
+    setAlarmDuration(val);
+    localStorage.setItem('ems-alarm-duration', val.toString());
+  };
 
   const fetchEmails = async () => {
     try {
@@ -76,8 +92,33 @@ export default function EmailAlertsManager() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        {/* Form Tambah Email */}
-        <div className="lg:col-span-1">
+        {/* Kolom Kiri: Form & Pengaturan */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Pengaturan Alarm */}
+          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-500" />
+              Pengaturan Alarm
+            </h2>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Interval Anti-Spam Email (Menit)
+              </label>
+              <p className="text-xs text-slate-500 mb-3">
+                Maksimal 15 menit. Tentukan jeda waktu antar pengiriman email jika anomali masih terjadi.
+              </p>
+              <input
+                type="number"
+                min="1"
+                max="15"
+                value={alarmDuration}
+                onChange={handleDurationChange}
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-100 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Form Tambah Email */}
           <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
               <Plus className="w-5 h-5 text-blue-500" />

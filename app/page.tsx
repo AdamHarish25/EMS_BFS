@@ -238,6 +238,13 @@ export default function Dashboard() {
           }
         });
 
+        // Read directly from localStorage
+        let currentDuration = 5;
+        const savedDuration = localStorage.getItem('ems-alarm-duration');
+        if (savedDuration) {
+           currentDuration = parseInt(savedDuration, 10) || 5;
+        }
+
         // Selalu panggil API, biarkan API yang memutuskan apakah ini SPAM atau NORMAL (Clear State)
         fetch("/api/send-alert", {
           method: "POST",
@@ -248,6 +255,7 @@ export default function Dashboard() {
             isCritical: isCriticalGlobal,
             lastFetchTime: timeString,
             rawValues: newRealtimeData,
+            alarmDurationMs: currentDuration * 60 * 1000,
           }),
         }).catch((err) => console.error("Gagal kirim email alert:", err));
         // ------------------------------------
