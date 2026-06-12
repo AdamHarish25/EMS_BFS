@@ -22,3 +22,6 @@ Untuk versi lengkap dengan diagram, lihat file CHANGELOG.md di folder docs.
 - Pagination DataTable 50 baris/halaman
 - DB connection timeout (5 detik)
 - Semua config sensitif pindah ke `.env.local`
+
+
+

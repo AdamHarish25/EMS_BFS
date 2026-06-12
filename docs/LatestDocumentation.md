@@ -203,6 +203,16 @@ The following changes were implemented to extend functionality, resolve bugs, an
 | 2 | **Copywriting Overhaul** | Rewrote dictionary strings (e.g. `Raw Telemetry` ➔ `Data Mentah Sensor`) in `contexts/LanguageContext.tsx`. | Replaces robotic jargon with intuitive, human-centric terminology for daily operators. |
 | 3 | **Restored DP Labels** | Expanded the shortened "DP 1" and "DP 2" labels back to "Differential Pressure 1 & 2". | Preserves clarity in the dashboard while maintaining the lean UI constraints. |
 
+## 6️⃣ Anti-Spam Email Filter & Global Interval Config
+
+| # | Change | Description | Reason |
+|---|--------|-------------|--------|
+| 1 | **Adjusted Anti-Spam Logic** | Reduced default anti-spam interval limit from 10 minutes to 5 minutes in `api/send-alert`. | Allows critical anomaly alerts to be sent more frequently as requested by the user. |
+| 2 | **Fixed Dashboard Infinite Loop** | Separated the `fetchRooms` hook from the `fetchAllRealtime` polling interval hook in `app/page.tsx`. | Prevented the dashboard from continuously firing background API requests and triggering an infinite re-render loop. |
+| 3 | **Global Config API Endpoint** | Created a centralized memory store (`lib/store.ts`) and API route (`api/alarm-config/route.ts`). | Stores the custom alarm duration interval globally on the backend without requiring database modifications. |
+| 4 | **UI For Setting Interval** | Built a custom input element in the `app/emails/page.tsx` Management Page. | Empowers operators to dynamically change the anti-spam alarm duration limit (capped at 1-15 mins) on the fly. |
+| 5 | **Resolved Client Collisions** | Replaced `localStorage` tracking with the `globalSettings` backend memory mechanism. | Eliminates settings collisions and race-conditions when multiple users open the dashboard on different browsers. |
+
 ---
 
 *All latest changes are pushed and live!*

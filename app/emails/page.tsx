@@ -13,18 +13,33 @@ export default function EmailAlertsManager() {
   const [alarmDuration, setAlarmDuration] = useState<number>(5);
 
   useEffect(() => {
-    const saved = localStorage.getItem('ems-alarm-duration');
-    if (saved) {
-      setAlarmDuration(parseInt(saved, 10));
-    }
+    // Read from global backend store
+    fetch('/api/alarm-config')
+      .then(res => res.json())
+      .then(data => {
+        if (data.duration) {
+          setAlarmDuration(data.duration);
+        }
+      })
+      .catch(err => console.error("Gagal load config:", err));
   }, []);
 
-  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDurationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = parseInt(e.target.value, 10) || 1;
     if (val > 15) val = 15;
     if (val < 1) val = 1;
     setAlarmDuration(val);
-    localStorage.setItem('ems-alarm-duration', val.toString());
+    
+    // Save to global backend store
+    try {
+      await fetch('/api/alarm-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ duration: val })
+      });
+    } catch (err) {
+      console.error("Gagal save config:", err);
+    }
   };
 
   const fetchEmails = async () => {

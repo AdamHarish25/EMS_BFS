@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { query } from '@/lib/db';
+import { globalSettings } from '@/lib/store';
 
 // Tracker global untuk waktu deteksi anomali per ruangan dan nilai terakhir yang dikirim
 // Format: { "Nama Ruangan": { firstSeen: number, lastSentTime: number, lastSentValues: any } }
@@ -9,7 +10,7 @@ let anomalyTracker: Record<string, { firstSeen: number, lastSentTime: number, la
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { anomalies, trackingState, isCritical, lastFetchTime, rawValues, alarmDurationMs } = body;
+    const { anomalies, trackingState, isCritical, lastFetchTime, rawValues } = body;
 
     // JIKA TIDAK ADA ANOMALI SAMA SEKALI
     if (!anomalies || anomalies.length === 0) {
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
     // --------------------------------------------------------------------
     // FILTER ANTI-SPAM: DURASI 10 MENIT & PERUBAHAN SIGNIFIKAN
     // --------------------------------------------------------------------
-    const TEN_MINUTES_MS = alarmDurationMs !== undefined ? alarmDurationMs : (5 * 60 * 1000);
+    const TEN_MINUTES_MS = globalSettings.alarmDuration * 60 * 1000;
     const now = Date.now();
     let filteredAnomalies: string[] = [];
     let roomsToUpdate: string[] = [];
