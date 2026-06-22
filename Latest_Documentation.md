@@ -19,3 +19,23 @@ Pembaruan dilakukan untuk menyimpan data durasi alarm secara persisten menggunak
   3. **INSERT**: Jika tabel masih sepenuhnya kosong (`checkRes.rows.length === 0`), barulah sistem akan menjalankan `INSERT INTO "BFS_EMS_ALARM_Duration" (alarm_duration) VALUES ($1)`.
 
 Kedua proses di *backend* tersebut masih tetap akan menyinkronisasikan nilainya dengan memori sementara (`globalSettings.alarmDuration`) di `@/lib/store` agar sistem yang berjalan tetap ter-update tanpa harus melakukan kueri secara berulang-ulang dari *database*.
+
+## 3. Peningkatan Sistem Jejak Audit (*Audit Trail*)
+Sistem *Audit Trail* telah diperluas. Sebelumnya hanya mencatat riwayat navigasi (*Page View*), namun kini sistem sudah mendokumentasikan aksi CRUD (*Create, Read, Update, Delete*) dan pencetakan laporan ke dalam tabel `ems_audit_logs`. Karena saat ini belum ada sistem *login user*, log masih menggunakan identifier bawaan (seperti `System` atau email admin). 
+
+Berikut adalah rute dan fungsi yang kini memiliki sistem validasi tipe *AuditModule* dan terekam di jejak audit:
+
+- **Pengaturan Alarm (`app/api/alarm-config/route.ts`)**
+  - **CREATE/UPDATE**: Tersimpan pada *module* `SETTINGS`. Mencatat perubahan atau penambahan durasi toleransi alarm baru.
+
+- **Manajemen Email Penerima (`app/api/emails/route.ts` & `app/api/emails/[id]/route.ts`)**
+  - **VIEW**: Tersimpan pada *module* `SETTINGS`. Terpicu ketika menarik daftar seluruh alamat email.
+  - **CREATE**: Tersimpan pada *module* `SETTINGS`. Terpicu ketika menambahkan penerima email baru.
+  - **DELETE**: Tersimpan pada *module* `SETTINGS`. Terpicu ketika sebuah email dihapus.
+
+- **Manajemen Eksklusi/Fumigasi (`app/api/add-exclusion/route.ts` & `app/api/get-exclusions/route.ts`)**
+  - **VIEW**: Tersimpan pada *module* `DATA_EXCLUSION`. Mencatat aktivitas melihat data eksklusi/fumigasi.
+  - **CREATE**: Tersimpan pada *module* `DATA_EXCLUSION`. Mencatat pembuatan jadwal pengecualian data sensor beserta detail alasannya.
+
+- **Pencetakan Laporan (`app/api/report-readings/route.ts`)**
+  - **EXPORT**: Tersimpan pada *module* `REPORTING`. Mencatat aktivitas pembuatan dan penarikan data laporan spesifik untuk unit tertentu berdasarkan *range* waktu yang dipilih.
