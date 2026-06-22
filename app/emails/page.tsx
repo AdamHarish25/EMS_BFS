@@ -11,6 +11,7 @@ export default function EmailAlertsManager() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [alarmDuration, setAlarmDuration] = useState<number>(5);
+  const [savingDuration, setSavingDuration] = useState(false);
 
   useEffect(() => {
     // Read from global backend store
@@ -24,21 +25,27 @@ export default function EmailAlertsManager() {
       .catch(err => console.error("Gagal load config:", err));
   }, []);
 
-  const handleDurationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = parseInt(e.target.value, 10) || 1;
     if (val > 15) val = 15;
     if (val < 1) val = 1;
     setAlarmDuration(val);
-    
-    // Save to global backend store
+  };
+
+  const handleSaveDuration = async () => {
+    setSavingDuration(true);
     try {
       await fetch('/api/alarm-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duration: val })
+        body: JSON.stringify({ duration: alarmDuration })
       });
+      alert("Durasi alarm berhasil disimpan!");
     } catch (err) {
       console.error("Gagal save config:", err);
+      alert("Gagal menyimpan durasi alarm");
+    } finally {
+      setSavingDuration(false);
     }
   };
 
@@ -128,8 +135,15 @@ export default function EmailAlertsManager() {
                 max="15"
                 value={alarmDuration}
                 onChange={handleDurationChange}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-100 transition-all"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-100 transition-all mb-3"
               />
+              <button
+                onClick={handleSaveDuration}
+                disabled={savingDuration}
+                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+              >
+                {savingDuration ? "Menyimpan..." : "Simpan Durasi"}
+              </button>
             </div>
           </div>
 
