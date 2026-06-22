@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { createAuditLog } from '@/lib/audit-logger';
 
 export const dynamic = 'force-dynamic'; // <--- INI PENTING: Matikan cache Next.js
 
@@ -25,6 +26,14 @@ export async function GET() {
       ORDER BY timestamp_start DESC
     `);
     
+    // Add audit log
+    await createAuditLog({
+      action: 'VIEW',
+      module: 'DATA_EXCLUSION',
+      description: `Fetched fumigation/exclusion data. Total: ${result.rows.length} rows.`,
+      userEmail: 'System'
+    });
+
     return NextResponse.json(result.rows);
   } catch (error: any) {
     console.error('[API /get-exclusions] Error:', error.message);

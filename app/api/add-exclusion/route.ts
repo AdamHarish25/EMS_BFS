@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { createAuditLog } from '@/lib/audit-logger';
 
 export async function POST(req: Request) {
   try {
@@ -60,6 +61,15 @@ export async function POST(req: Request) {
     if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Tidak ada data sensor ditemukan pada rentang waktu ini' }, { status: 404 });
     }
+
+    // Add audit log
+    await createAuditLog({
+      action: 'CREATE',
+      module: 'DATA_EXCLUSION',
+      description: `Menambahkan data fumigasi/eksklusi untuk unit ${unit_id} sebanyak ${result.rowCount} baris. Alasan: ${reason}`,
+      userEmail: excluded_by || 'admin@base44.io',
+      newValues: { unit_id, timestamp_start, timestamp_end, reason }
+    });
 
     return NextResponse.json({ 
       success: true, 

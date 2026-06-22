@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { globalSettings } from '@/lib/store';
+import { createAuditLog } from '@/lib/audit-logger';
 
 export async function GET() {
   try {
@@ -24,14 +25,28 @@ export async function POST(req: Request) {
       let val = parseInt(duration, 10);
       if (val > 15) val = 15;
       if (val < 1) val = 1;
-      
+
       const checkRes = await query('SELECT * FROM "BFS_EMS_ALARM_Duration" LIMIT 1');
       if (checkRes.rows.length > 0) {
         await query('UPDATE "BFS_EMS_ALARM_Duration" SET alarm_duration = $1', [val]);
+
+        await createAuditLog({
+          action: 'UPDATE',
+          module: 'SETTINGS',
+          description: `Updated alarm duration to ${val}`,
+          userEmail: 'System'
+        });
       } else {
         await query('INSERT INTO "BFS_EMS_ALARM_Duration" (alarm_duration) VALUES ($1)', [val]);
+
+        await createAuditLog({
+          action: 'CREATE',
+          module: 'SETTINGS',
+          description: `Created alarm duration with ${val}`,
+          userEmail: 'System'
+        });
       }
-      
+
       globalSettings.alarmDuration = val;
       return NextResponse.json({ success: true, duration: val });
     }
