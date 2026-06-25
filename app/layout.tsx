@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Providers } from "./providers";
 import { Toaster } from 'sonner';
 import AuditRouteListener from "@/components/AuditRouteListener";
+import TutorialComponent from "@/components/TutorialComponent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
         <AuditRouteListener />
         <Providers>
           <AppLayout>{children}</AppLayout>
+          <TutorialComponent />
           <Toaster theme="dark" position="bottom-right" />
         </Providers>
       </body>

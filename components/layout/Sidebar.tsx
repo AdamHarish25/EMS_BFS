@@ -7,6 +7,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from 'next-themes';
+import { useTutorial } from '@/contexts/TutorialContext';
+import { HelpCircle } from 'lucide-react';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -24,6 +26,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { lang, toggleLang, t } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const { startTutorial } = useTutorial();
   const [isOnline, setIsOnline] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -112,6 +115,16 @@ export default function Sidebar() {
             </span>
           </button>
         )}
+
+        <button
+          onClick={startTutorial}
+          className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <HelpCircle className="w-4 h-4" />
+            <span className="text-sm font-medium">{t("Show Me How")}</span>
+          </div>
+        </button>
 
         <button
           onClick={toggleLang}

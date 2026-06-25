@@ -144,7 +144,8 @@ const translations: Record<Language, Record<string, string>> = {
     "Preview Log Data": "Preview Data Log",
     "No Activity Logs": "Belum ada data log aktivitas",
     "Filter Configuration": "Pengaturan Filter",
-    "No Filter Found": "Tidak ada data yang sesuai dengan filter "
+    "No Filter Found": "Tidak ada data yang sesuai dengan filter ",
+    "Show Me How": "Tunjukkan Caranya"
   },
   en: {
     "System Dashboard": "System Dashboard",
@@ -280,7 +281,8 @@ const translations: Record<Language, Record<string, string>> = {
     "Preview Log Data": "Log Data Preview",
     "No Activity Logs": "No activity logs available",
     "Filter Configuration": "Filter Configuration",
-    "No Filter Found": "No data found matching the filter "
+    "No Filter Found": "No data found matching the filter ",
+    "Show Me How": "Show Me How"
   }
 };
 
