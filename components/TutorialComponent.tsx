@@ -38,13 +38,22 @@ export default function TutorialComponent() {
             disableBeacon: true,
           },
           {
-            target: 'form',
+            target: '#room-form',
+            content: 'Isi form ini untuk menentukan ruangan yang ingin ditambahkan.',
+          },
+          {
+            target: '#exclusion-form',
             content: 'Isi form ini untuk menentukan ruangan dan rentang waktu yang ingin dikecualikan dari sistem peringatan.',
           },
           {
-            target: 'table',
-            content: 'Daftar pengecualian yang sedang aktif akan muncul pada tabel ini.',
+            target: '#exclusion-list',
+            content: 'Daftar pengecualian yang sedang aktif akan muncul di area ini.',
           },
+          {
+            target: '#table-data',
+            content: 'Tabel ini menampilkan seluruh data sensor dari setiap ruangan. Anda dapat memfilter data berdasarkan tanggal, waktu, dan ruangan.',
+            placement: 'top',
+          }
         ];
       case '/reports':
         return [
@@ -109,10 +118,12 @@ export default function TutorialComponent() {
     }
   };
 
+  if (!runTutorial) return null;
+
   return (
     <JoyrideComponent
       steps={steps}
-      run={runTutorial}
+      run={true}
       continuous
       scrollToFirstStep
       showProgress

@@ -32,12 +32,12 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
     const newId = `dp${attributes.length + 1}`;
     setAttributes([
       ...attributes,
-      { 
-        id: newId, 
-        name: `New Parameter ${dpCount + 1}`, 
-        externalLogId: '', 
-        targetColumn: 'differential_pressure', 
-        required: false, 
+      {
+        id: newId,
+        name: `New Parameter ${dpCount + 1}`,
+        externalLogId: '',
+        targetColumn: 'differential_pressure',
+        required: false,
         deletable: true,
         suffix: ` - DP ${dpCount + 1} (sesuaikan format)`
       }
@@ -49,7 +49,7 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
   };
 
   const updateAttribute = (id: string, field: keyof Attribute, value: string) => {
-    setAttributes(attributes.map(attr => 
+    setAttributes(attributes.map(attr =>
       attr.id === id ? { ...attr, [field]: value } : attr
     ));
   };
@@ -92,9 +92,9 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
       if (!res.ok) throw new Error(data.error || t("Failed Add Room"));
 
       toast.success(data.message || t("Success Add Room"));
-        if (onAddRoom) onAddRoom(data.data);
-        // Dispatch custom event to refresh dashboard
-        window.dispatchEvent(new CustomEvent("ems-room-added"));
+      if (onAddRoom) onAddRoom(data.data);
+      // Dispatch custom event to refresh dashboard
+      window.dispatchEvent(new CustomEvent("ems-room-added"));
 
       // Reset form
       setRoomName('');
@@ -121,7 +121,7 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
         <PlusCircle className="w-5 h-5 text-emerald-500" />
         {t("Add New Room")}
       </h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form id="room-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Room Name")}</label>
           <input

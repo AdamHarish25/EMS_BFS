@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function ExclusionList({ exclusions, onDelete }: { exclusions: any[], onDelete: (id: string | string[]) => void }) {
   const { t } = useLanguage();
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
+    <div id="exclusion-list" className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
       <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900/50">
         <h3 className="font-medium text-slate-700 dark:text-slate-200">{t("Active Exclusions")}</h3>
         <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">

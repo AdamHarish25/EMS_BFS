@@ -117,7 +117,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
         <AlertCircle className="w-5 h-5 text-rose-500" />
         {t("Add Exclusion")}
       </h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form id="exclusion-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{t("Room")}</label>
           <select

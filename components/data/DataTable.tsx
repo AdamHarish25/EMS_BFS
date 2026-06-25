@@ -208,7 +208,7 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
   });
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xl">
+    <div id="table-data" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xl">
       <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900/50">
         <h3 className="font-medium text-slate-700 dark:text-slate-200">{t("Raw Telemetry")}</h3>
         <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800">{filteredData.length} {t("Records Shown")}</span>
