@@ -1,23 +1,51 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import CustomDateTimePicker from '@/components/ui/CustomDateTimePicker';
 
-const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.127:1880';
+const NODE_RED = process.env.NEXT_PUBLIC_NODE_RED_URL || 'http://10.165.40.13:1880';
 const ROOMS = ['Dispensing 1', 'Dispensing 2', 'Mixing', 'Filling', 'Transfer Plastic Moulding', 'WIP'];
 
 export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAddExclusion: (data: any) => void, readings?: any[] }) {
   const { t } = useLanguage();
-  const [unitId, setUnitId] = useState(ROOMS[0]);
+  const [roomList, setRoomList] = useState<string[]>(ROOMS);
+  const [unitId, setUnitId] = useState(roomList[0]);
   const [startDateTime, setStartDateTime] = useState('');
   const [endDateTime, setEndDateTime] = useState('');
   const [exclusionType, setExclusionType] = useState('Fumigasi');
   const [reason, setReason] = useState('');
   const [statusTag, setStatusTag] = useState('Semua');
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch all rooms from API
+  const fetchRooms = async () => {
+    try {
+      const res = await fetch("/api/rooms");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          setRoomList(data);
+          setUnitId((prev) => (data.includes(prev) ? prev : data[0]));
+        }
+      }
+    } catch (err) {
+      console.error("Gagal menarik daftar ruangan:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchRooms();
+    const handleRoomAdded = () => {
+      fetchRooms();
+    };
+    window.addEventListener("ems-room-added", handleRoomAdded);
+    return () => {
+      window.removeEventListener("ems-room-added", handleRoomAdded);
+    };
+  }, []);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +59,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
     const start = new Date(startDateTime);
     const end = new Date(endDateTime);
     const diffMs = end.getTime() - start.getTime();
-    
+
     if (diffMs <= 0) {
       toast.error('Waktu selesai harus setelah waktu mulai');
       return;
@@ -97,7 +125,7 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
             onChange={(e) => setUnitId(e.target.value)}
             className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
-            {ROOMS.map(r => (
+            {roomList.map(r => (
               <option key={r} value={r}>{r}</option>
             ))}
           </select>
