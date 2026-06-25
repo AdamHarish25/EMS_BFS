@@ -53,7 +53,7 @@ const translations: Record<Language, Record<string, string>> = {
     "No Active": "Tidak ada pengecualian yang sedang aktif",
     "Remove Exclusion": "Hapus",
     "Unknown": "Tidak diketahui",
-    "Raw Telemetry": "Data Mentah Sensor",
+    "Raw Telemetry": "Data Sensor",
     "Records Shown": "data ditampilkan",
     "Excluded": "Dikecualikan",
     "System Reports": "Laporan Sistem",
@@ -142,7 +142,9 @@ const translations: Record<Language, Record<string, string>> = {
     "All Modules": "Semua Modul",
     "Pull Log Data": "Tarik Data Log",
     "Preview Log Data": "Preview Data Log",
-    "No Activity Logs": "Belum ada data log aktivitas"
+    "No Activity Logs": "Belum ada data log aktivitas",
+    "Filter Configuration": "Pengaturan Filter",
+    "No Filter Found": "Tidak ada data yang sesuai dengan filter "
   },
   en: {
     "System Dashboard": "System Dashboard",
@@ -169,7 +171,7 @@ const translations: Record<Language, Record<string, string>> = {
     "Time": "Time",
     "Unit": "Room",
     "Temp": "Temp (°C)",
-    "RH": "RH (%)",
+    "RH": "R-Hum (%)",
     "DP": "DP (Pa)",
     "Status": "Status",
     "No Recent": "No recent history available",
@@ -187,7 +189,7 @@ const translations: Record<Language, Record<string, string>> = {
     "No Active": "No active exclusions found",
     "Remove Exclusion": "Remove",
     "Unknown": "Unknown",
-    "Raw Telemetry": "Raw Sensor Data",
+    "Raw Telemetry": "Sensor Data",
     "Records Shown": "records shown",
     "Excluded": "Excluded",
     "System Reports": "System Reports",
@@ -276,7 +278,9 @@ const translations: Record<Language, Record<string, string>> = {
     "All Modules": "All Modules",
     "Pull Log Data": "Pull Log Data",
     "Preview Log Data": "Log Data Preview",
-    "No Activity Logs": "No activity logs available"
+    "No Activity Logs": "No activity logs available",
+    "Filter Configuration": "Filter Configuration",
+    "No Filter Found": "No data found matching the filter "
   }
 };
 

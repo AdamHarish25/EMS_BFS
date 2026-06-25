@@ -237,7 +237,7 @@ export default function DataManagementPage() {
       {/* FILTER PANEL */}
       <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
         <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-4 uppercase tracking-wider flex items-center gap-2">
-          <Search className="w-4 h-4 text-blue-400" /> Filter Configuration
+          <Search className="w-4 h-4 text-blue-400" /> {t("Filter Configuration")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-end">
           <div>

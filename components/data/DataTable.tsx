@@ -230,7 +230,7 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
             {filteredData.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-8 text-center text-slate-500 font-medium">
-                  Tidak ada data yang sesuai dengan filter "{dataFilter}".
+                  {t("No Activity Logs")} "{dataFilter}".
                 </td>
               </tr>
             ) : (() => {
