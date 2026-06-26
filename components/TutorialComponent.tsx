@@ -10,7 +10,7 @@ const JoyrideComponent = Joyride as any;
 const CustomBeacon = React.forwardRef<HTMLSpanElement, any>((props, ref) => {
   // We extract out the non-DOM props injected by react-joyride
   const { continuous, index, isLastStep, size, step, ...domProps } = props;
-  
+
   return (
     <span
       {...domProps}
@@ -164,9 +164,9 @@ export default function TutorialComponent() {
         options: {
           zIndex: 10000,
           primaryColor: '#3b82f6',
-          backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
-          textColor: theme === 'dark' ? '#f8fafc' : '#0f172a',
-          arrowColor: theme === 'dark' ? '#1e293b' : '#ffffff',
+          backgroundColor: theme === 'dark' ? '#3b82f6' : '#ffffff',
+          textColor: theme === 'dark' ? '#f8fafc' : '#3b82f6',
+          arrowColor: theme === 'dark' ? '#3b82f6' : '#ffffff',
         },
       }) as any}
     />
