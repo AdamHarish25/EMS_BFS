@@ -25,7 +25,6 @@ async function getInitialAuditLogs() {
         created_at 
       FROM ems_audit_logs
       ORDER BY created_at DESC
-      LIMIT 100
     `);
     client.release();
     return result.rows;

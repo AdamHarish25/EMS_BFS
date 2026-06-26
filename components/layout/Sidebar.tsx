@@ -59,7 +59,7 @@ export default function Sidebar() {
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     // Listen to custom event from dashboard for instant sync
     const handleStatusSync = (e: any) => setIsOnline(e.detail.isOnline);
     window.addEventListener('ems-system-status', handleStatusSync);
@@ -73,7 +73,7 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full py-6 px-4">
+    <div id="sidebar" className="flex flex-col h-full py-6 px-4">
       <div className="flex items-center gap-3 px-2 mb-8 text-blue-400">
         <Activity className="w-8 h-8" />
         <span className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">AHU Monitoring EMS BFS</span>
@@ -85,6 +85,7 @@ export default function Sidebar() {
           return (
             <Link
               key={item.key}
+              id={item.key}
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",

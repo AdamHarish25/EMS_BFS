@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       paramIndex++;
     }
 
-    query += ` ORDER BY created_at DESC LIMIT 1000`; // Batasi 1000 log untuk PDF agar browser tidak crash
+    query += ` ORDER BY created_at DESC LIMIT 5000`; // Batasi 1000 log untuk PDF agar browser tidak crash
 
     const result = await client.query(query, params);
 

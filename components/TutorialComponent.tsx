@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo } from 'react';
 import { Joyride, Step } from 'react-joyride';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTutorial } from '@/contexts/TutorialContext';
 import { useTheme } from 'next-themes';
 
@@ -32,8 +32,19 @@ CustomBeacon.displayName = "CustomBeacon";
 
 export default function TutorialComponent() {
   const pathname = usePathname();
-  const { runTutorial, stopTutorial } = useTutorial();
+  const router = useRouter();
+  const { runTutorial, isMultiPage, stopTutorial, pauseTutorial, resumeTutorial } = useTutorial();
   const { theme } = useTheme();
+
+  // Automatically resume the tutorial on the new page after navigation
+  React.useEffect(() => {
+    if (isMultiPage && !runTutorial) {
+      const timer = setTimeout(() => {
+        resumeTutorial();
+      }, 700); // 700ms delay to allow Next.js route transition and render
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, isMultiPage, runTutorial, resumeTutorial]);
 
   const steps = useMemo<Step[]>(() => {
     switch (pathname) {
@@ -52,6 +63,17 @@ export default function TutorialComponent() {
             target: '.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3',
             content: 'Di sini Anda dapat melihat data sensor (Suhu, Kelembapan, dan Tekanan) untuk setiap ruangan secara langsung.',
           },
+          {
+            target: '#sidebar',
+            content: 'Di sinilah Anda dapat menavigasi ke halaman lain.',
+            placement: 'right',
+          },
+          {
+            target: '#DataManagementMenu',
+            content: 'Klik di sini untuk melanjutkan ke halaman Manajemen Data.',
+            placement: 'right',
+            locale: { last: 'Lanjut ke Manajemen Data' }
+          }
         ];
       case '/data-management':
         return [
@@ -76,6 +98,12 @@ export default function TutorialComponent() {
             target: '#table-data',
             content: 'Tabel ini menampilkan seluruh data sensor dari setiap ruangan. Anda dapat memfilter data berdasarkan tanggal, waktu, dan ruangan.',
             placement: 'top',
+          },
+          {
+            target: '#ReportsMenu',
+            content: 'Klik di sini untuk melanjutkan ke halaman Laporan.',
+            placement: 'right',
+            locale: { last: 'Lanjut ke Laporan' }
           }
         ];
       case '/reports':
@@ -93,6 +121,12 @@ export default function TutorialComponent() {
             target: '.recharts-wrapper, .h-\\[400px\\]',
             content: 'Pratinjau visual berupa grafik data sensor akan muncul di area ini sebelum Anda mencetak/unduh PDF.',
           },
+          {
+            target: '#EmailAlertsMenu',
+            content: 'Klik di sini untuk melanjutkan ke halaman Email Alerts.',
+            placement: 'right',
+            locale: { last: 'Lanjut ke Email Alerts' }
+          }
         ];
       case '/emails':
         return [
@@ -105,6 +139,12 @@ export default function TutorialComponent() {
             target: 'table',
             content: 'Anda dapat menambah atau menghapus penerima, serta mengatur filter pengiriman pada tabel ini.',
           },
+          {
+            target: '#AuditLogMenu',
+            content: 'Klik di sini untuk melanjutkan ke halaman Audit Trail.',
+            placement: 'right',
+            locale: { last: 'Lanjut ke Audit Trail' }
+          }
         ];
       case '/audit-log':
         return [
@@ -137,6 +177,19 @@ export default function TutorialComponent() {
     const { status, action } = data;
     const finishedStatuses = ['finished', 'skipped'];
     if (finishedStatuses.includes(status) || action === 'close') {
+      if (status === 'finished' && isMultiPage) {
+        let nextPage = '';
+        if (pathname === '/') nextPage = '/data-management';
+        else if (pathname === '/data-management') nextPage = '/reports';
+        else if (pathname === '/reports') nextPage = '/emails';
+        else if (pathname === '/emails') nextPage = '/audit-log';
+
+        if (nextPage) {
+          pauseTutorial();
+          router.push(nextPage);
+          return;
+        }
+      }
       stopTutorial();
     }
   };
@@ -145,6 +198,7 @@ export default function TutorialComponent() {
 
   return (
     <JoyrideComponent
+      key={pathname}
       steps={steps}
       run={true}
       beaconComponent={CustomBeacon}
