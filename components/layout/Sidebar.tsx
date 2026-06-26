@@ -26,7 +26,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { lang, toggleLang, t } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const { startTutorial } = useTutorial();
+  const { status, startTutorial, stopTutorial } = useTutorial();
   const [isOnline, setIsOnline] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -117,15 +117,42 @@ export default function Sidebar() {
           </button>
         )}
 
-        <button
-          onClick={startTutorial}
-          className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <HelpCircle className="w-4 h-4" />
-            <span className="text-sm font-medium">{t("Show Me How")}</span>
-          </div>
-        </button>
+        {mounted && (
+          <button
+            id="tutorial-toggler"
+            onClick={() => {
+              if (status === 'running' || status === 'paused') {
+                stopTutorial();
+              } else {
+                startTutorial();
+              }
+            }}
+            className={cn(
+              "w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-300",
+              (status === 'running' || status === 'paused')
+                ? "bg-blue-600/10 border-blue-500/30 text-blue-600 dark:text-blue-400"
+                : "bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4" />
+              <span className="text-sm font-medium">{t("Show Me How")}</span>
+            </div>
+            <div
+              className={cn(
+                "w-9 h-5 rounded-full p-0.5 transition-colors duration-300 ease-in-out flex items-center",
+                (status === 'running' || status === 'paused') ? "bg-blue-500" : "bg-slate-200 dark:bg-slate-800"
+              )}
+            >
+              <div
+                className={cn(
+                  "w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300 ease-in-out",
+                  (status === 'running' || status === 'paused') ? "translate-x-4" : "translate-x-0"
+                )}
+              />
+            </div>
+          </button>
+        )}
 
         <button
           onClick={toggleLang}

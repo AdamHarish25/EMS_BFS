@@ -15,14 +15,16 @@ Fitur ini dibangun di atas tumpukan teknologi berikut:
 ## 2. Struktur File & Modifikasi Code
 
 ### A. Context Tutorial (`contexts/TutorialContext.tsx`) - *File Baru*
-Mengelola state global tutorial. State ini harus tetap ada meskipun terjadi pergantian rute Next.js (tidak unmount karena dibungkus di root provider).
-- **`runTutorial` (boolean)**: Menentukan apakah tur sedang berjalan (aktif) di halaman saat ini.
-- **`isMultiPage` (boolean)**: Menandai apakah pengguna sedang dalam mode "walkthrough keliling seluruh aplikasi" secara bertahap.
+Mengelola state global tutorial menggunakan satu tipe data status agar terhindar dari *race conditions* akibat pembaruan *state* asinkronus (batching) di React:
+- **`status` ('idle' | 'running' | 'paused')**:
+  - `'idle'`: Tur mati (tidak aktif).
+  - `'running'`: Tur sedang aktif berjalan di halaman yang bersangkutan.
+  - `'paused'`: Tur dijeda sementara selama navigasi rute halaman berlangsung.
 - **Fungsi Utama**:
-  - `startTutorial()`: Memulai tur multi-halaman dari awal.
-  - `pauseTutorial()`: Mematikan render Joyride sementara waktu selama transisi navigasi halaman agar tidak terjadi error target elemen hilang (*Target not found*).
-  - `resumeTutorial()`: Mengaktifkan kembali rendering tur setelah navigasi halaman selesai.
-  - `stopTutorial()`: Menghentikan tur secara permanen dan mereset status.
+  - `startTutorial()`: Mengubah status ke `'running'` untuk memulai tur.
+  - `pauseTutorial()`: Mengubah status ke `'paused'` untuk menonaktifkan rendering Joyride sementara waktu saat proses navigasi.
+  - `resumeTutorial()`: Mengubah status kembali ke `'running'` setelah halaman baru termuat.
+  - `stopTutorial()`: Mengubah status kembali ke `'idle'` untuk mengakhiri sesi tutorial secara tuntas.
 
 ### B. Komponen Tutorial (`components/TutorialComponent.tsx`) - *File Baru*
 Komponen utama yang me-render Joyride secara kondisional.
@@ -35,12 +37,17 @@ Komponen utama yang me-render Joyride secara kondisional.
 - **State Reset (`key={pathname}`)**: Menggunakan properti `key` dengan nilai `pathname` pada komponen Joyride. Hal ini memaksa React untuk menghancurkan (*unmount*) instansi Joyride lama dan membuat instansi yang baru dari index `0` setiap kali pengguna berpindah halaman, mencegah retensi index langkah (*state retention bug*).
 - **Seamless Transition Logic**:
   - Pada langkah terakhir di suatu halaman, tombol aksi berubah nama menjadi link halaman berikutnya (contoh: *"Lanjut ke Laporan"*).
-  - Ketika diklik, callback mendeteksi status `finished` dan properti `isMultiPage: true`. Ia memanggil `pauseTutorial()`, melakukan `router.push('/target-halaman')`, dan membiarkan Next.js berpindah halaman.
-  - Sebuah `useEffect` mendengarkan perubahan `pathname`. Jika rute berubah sementara statusnya `isMultiPage` aktif dan `runTutorial` mati, ia memasang timeout selama `700ms` untuk memberikan waktu halaman me-render elemen HTML baru, lalu memicu `resumeTutorial()`.
+  - Ketika diklik, callback mendeteksi status `finished`. Jika halaman saat ini memiliki halaman berikutnya, ia memanggil `pauseTutorial()` (mengubah status ke `'paused'`), lalu melakukan `router.push('/target-halaman')`.
+  - Sebuah `useEffect` mendengarkan perubahan `pathname`. Jika status tur adalah `'paused'`, ia memasang timeout selama `700ms` untuk memberikan waktu halaman me-render elemen HTML baru, lalu memicu `resumeTutorial()` (mengubah status ke `'running'`) untuk memulai tur di halaman baru secara bersih dari langkah pertama.
+  - Khusus pada halaman terakhir (`/audit-log`), langkah tur penutup akan menyorot elemen `#tutorial-toggler` (Switch Tutorial di Sidebar) untuk memberi panduan visual kepada pengguna bahwa sesi tur telah berakhir dan switch dapat dikembalikan ke mode mati.
 
 ### C. Sidebar Component (`components/layout/Sidebar.tsx`) - *Modifikasi*
 - Mengimpor hook `useTutorial` dan ikon `HelpCircle` dari `lucide-react`.
-- Menambahkan tombol **"Tunjukkan Caranya"** (atau *"Show Me How"*) di bagian bawah sidebar.
+- Mengubah tombol **"Tunjukkan Caranya"** (atau *"Show Me How"*) menjadi **Toggle Switch** interaktif di bagian bawah sidebar:
+  - Tombol akan menyala (*ON*) dengan warna biru jika tutorial sedang aktif (`running` atau `paused`).
+  - Mengeklik switch saat *ON* akan memicu `stopTutorial()` untuk mematikan tur secara paksa.
+  - Jika tur selesai secara alami (mengklik "Selesai", "Tutup", atau "Lewati"), status tur diubah ke `'idle'`, dan switch akan bergeser mati (*OFF*) secara otomatis.
+- Menambahkan properti `id="tutorial-toggler"` pada elemen button switch di sidebar agar dapat ditargetkan oleh langkah penutup tutorial.
 - Menambahkan properti `id` unik pada setiap link menu navigasi (`#DashboardMenu`, `#DataManagementMenu`, `#ReportsMenu`, `#EmailAlertsMenu`, `#AuditLogMenu`) agar dapat ditargetkan secara presisi oleh penyorot (overlay) Joyride.
 
 ### D. Provider & Layout Wrapper - *Modifikasi*

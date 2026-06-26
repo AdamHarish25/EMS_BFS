@@ -4,6 +4,7 @@ import { Joyride, Step } from 'react-joyride';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTutorial } from '@/contexts/TutorialContext';
 import { useTheme } from 'next-themes';
+import next from 'next';
 
 const JoyrideComponent = Joyride as any;
 
@@ -33,18 +34,18 @@ CustomBeacon.displayName = "CustomBeacon";
 export default function TutorialComponent() {
   const pathname = usePathname();
   const router = useRouter();
-  const { runTutorial, isMultiPage, stopTutorial, pauseTutorial, resumeTutorial } = useTutorial();
+  const { status: tutorialStatus, stopTutorial, pauseTutorial, resumeTutorial } = useTutorial();
   const { theme } = useTheme();
 
   // Automatically resume the tutorial on the new page after navigation
   React.useEffect(() => {
-    if (isMultiPage && !runTutorial) {
+    if (tutorialStatus === 'paused') {
       const timer = setTimeout(() => {
         resumeTutorial();
       }, 700); // 700ms delay to allow Next.js route transition and render
       return () => clearTimeout(timer);
     }
-  }, [pathname, isMultiPage, runTutorial, resumeTutorial]);
+  }, [pathname, tutorialStatus, resumeTutorial]);
 
   const steps = useMemo<Step[]>(() => {
     switch (pathname) {
@@ -53,7 +54,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Selamat datang di Dasbor Sistem! Anda dapat memantau seluruh ruangan secara realtime di sini.',
-
+            disableBeacon: true,
           },
           {
             target: '.grid-cols-1.md\\:grid-cols-3',
@@ -80,7 +81,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Halaman Manajemen Data. Gunakan halaman ini untuk mencatat pengecualian data, misalnya saat Kalibrasi atau Fumigasi.',
-
+            disableBeacon: true,
           },
           {
             target: '#room-form',
@@ -111,7 +112,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Halaman Laporan Sistem memungkinkan Anda menarik data riwayat dan mengunduhnya sebagai file PDF.',
-
+            disableBeacon: true,
           },
           {
             target: '.grid-cols-1.md\\:grid-cols-4',
@@ -133,7 +134,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Pengaturan Email Alert. Kelola daftar penerima email notifikasi ketika sistem mendeteksi adanya anomali.',
-
+            disableBeacon: true,
           },
           {
             target: 'table',
@@ -151,7 +152,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Halaman Audit Trail menyimpan rekam jejak setiap interaksi dan aktivitas pengguna dalam sistem.',
-
+            disableBeacon: true,
           },
           {
             target: '.grid-cols-1.md\\:grid-cols-3, .grid-cols-1.sm\\:grid-cols-2',
@@ -161,6 +162,12 @@ export default function TutorialComponent() {
             target: 'table',
             content: 'Seluruh riwayat aktivitas beserta detail user, alamat IP, dan waktu kejadian tersimpan pada tabel ini.',
           },
+          {
+            target: '#tutorial-toggler',
+            content: 'Klik di sini untuk mengaktifkan / mengakhiri tutorial.',
+            placement: 'right',
+            locale: { last: 'Selesai' }
+          }
         ];
       default:
         return [
@@ -176,13 +183,18 @@ export default function TutorialComponent() {
   const handleJoyrideCallback = (data: any) => {
     const { status, action } = data;
     const finishedStatuses = ['finished', 'skipped'];
+
     if (finishedStatuses.includes(status) || action === 'close') {
-      if (status === 'finished' && isMultiPage) {
+      if (status === 'finished') {
         let nextPage = '';
         if (pathname === '/') nextPage = '/data-management';
         else if (pathname === '/data-management') nextPage = '/reports';
         else if (pathname === '/reports') nextPage = '/emails';
         else if (pathname === '/emails') nextPage = '/audit-log';
+        else if (pathname === '/audit-log') {
+
+          return;
+        }
 
         if (nextPage) {
           pauseTutorial();
@@ -194,7 +206,7 @@ export default function TutorialComponent() {
     }
   };
 
-  if (!runTutorial) return null;
+  if (tutorialStatus !== 'running') return null;
 
   return (
     <JoyrideComponent

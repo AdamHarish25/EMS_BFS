@@ -1,9 +1,10 @@
 "use client";
 import React, { createContext, useContext, useState } from "react";
 
+export type TutorialStatus = 'idle' | 'running' | 'paused';
+
 interface TutorialContextType {
-  runTutorial: boolean;
-  isMultiPage: boolean;
+  status: TutorialStatus;
   startTutorial: () => void;
   stopTutorial: () => void;
   pauseTutorial: () => void;
@@ -11,8 +12,7 @@ interface TutorialContextType {
 }
 
 const TutorialContext = createContext<TutorialContextType>({
-  runTutorial: false,
-  isMultiPage: false,
+  status: 'idle',
   startTutorial: () => {},
   stopTutorial: () => {},
   pauseTutorial: () => {},
@@ -20,26 +20,15 @@ const TutorialContext = createContext<TutorialContextType>({
 });
 
 export const TutorialProvider = ({ children }: { children: React.ReactNode }) => {
-  const [runTutorial, setRunTutorial] = useState(false);
-  const [isMultiPage, setIsMultiPage] = useState(false);
+  const [status, setStatus] = useState<TutorialStatus>('idle');
 
-  const startTutorial = () => {
-    setIsMultiPage(true);
-    setRunTutorial(true);
-  };
-  const stopTutorial = () => {
-    setIsMultiPage(false);
-    setRunTutorial(false);
-  };
-  const pauseTutorial = () => {
-    setRunTutorial(false);
-  };
-  const resumeTutorial = () => {
-    setRunTutorial(true);
-  };
+  const startTutorial = () => setStatus('running');
+  const stopTutorial = () => setStatus('idle');
+  const pauseTutorial = () => setStatus('paused');
+  const resumeTutorial = () => setStatus('running');
 
   return (
-    <TutorialContext.Provider value={{ runTutorial, isMultiPage, startTutorial, stopTutorial, pauseTutorial, resumeTutorial }}>
+    <TutorialContext.Provider value={{ status, startTutorial, stopTutorial, pauseTutorial, resumeTutorial }}>
       {children}
     </TutorialContext.Provider>
   );
