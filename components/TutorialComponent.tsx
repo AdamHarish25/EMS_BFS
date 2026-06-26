@@ -7,6 +7,29 @@ import { useTheme } from 'next-themes';
 
 const JoyrideComponent = Joyride as any;
 
+const CustomBeacon = React.forwardRef<HTMLSpanElement, any>((props, ref) => {
+  // We extract out the non-DOM props injected by react-joyride
+  const { continuous, index, isLastStep, size, step, ...domProps } = props;
+  
+  return (
+    <span
+      {...domProps}
+      ref={ref}
+      className="relative flex items-center justify-center group outline-none"
+    >
+      {/* Outer Pulse/Ping */}
+      <span className="absolute w-8 h-8 bg-blue-500 rounded-full animate-ping opacity-75"></span>
+      {/* Inner Dot */}
+      <span className="relative z-10 w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-md transition-transform transform hover:scale-110"></span>
+      {/* Text Popup */}
+      <span className="absolute left-10 whitespace-nowrap bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-xl pointer-events-none animate-bounce">
+        Klik untuk memulai
+      </span>
+    </span>
+  );
+});
+CustomBeacon.displayName = "CustomBeacon";
+
 export default function TutorialComponent() {
   const pathname = usePathname();
   const { runTutorial, stopTutorial } = useTutorial();
@@ -19,7 +42,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Selamat datang di Dasbor Sistem! Anda dapat memantau seluruh ruangan secara realtime di sini.',
-            disableBeacon: true,
+
           },
           {
             target: '.grid-cols-1.md\\:grid-cols-3',
@@ -35,7 +58,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Halaman Manajemen Data. Gunakan halaman ini untuk mencatat pengecualian data, misalnya saat Kalibrasi atau Fumigasi.',
-            disableBeacon: true,
+
           },
           {
             target: '#room-form',
@@ -60,7 +83,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Halaman Laporan Sistem memungkinkan Anda menarik data riwayat dan mengunduhnya sebagai file PDF.',
-            disableBeacon: true,
+
           },
           {
             target: '.grid-cols-1.md\\:grid-cols-4',
@@ -76,7 +99,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Pengaturan Email Alert. Kelola daftar penerima email notifikasi ketika sistem mendeteksi adanya anomali.',
-            disableBeacon: true,
+
           },
           {
             target: 'table',
@@ -88,7 +111,7 @@ export default function TutorialComponent() {
           {
             target: 'h1',
             content: 'Halaman Audit Trail menyimpan rekam jejak setiap interaksi dan aktivitas pengguna dalam sistem.',
-            disableBeacon: true,
+
           },
           {
             target: '.grid-cols-1.md\\:grid-cols-3, .grid-cols-1.sm\\:grid-cols-2',
@@ -111,9 +134,9 @@ export default function TutorialComponent() {
   }, [pathname]);
 
   const handleJoyrideCallback = (data: any) => {
-    const { status } = data;
+    const { status, action } = data;
     const finishedStatuses = ['finished', 'skipped'];
-    if (finishedStatuses.includes(status)) {
+    if (finishedStatuses.includes(status) || action === 'close') {
       stopTutorial();
     }
   };
@@ -124,6 +147,7 @@ export default function TutorialComponent() {
     <JoyrideComponent
       steps={steps}
       run={true}
+      beaconComponent={CustomBeacon}
       continuous
       scrollToFirstStep
       showProgress
