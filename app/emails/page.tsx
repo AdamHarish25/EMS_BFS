@@ -91,14 +91,18 @@ export default function EmailAlertsManager() {
   };
 
   const handleDeleteEmail = async (id: number) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus email ini?")) return;
+    if (!window.confirm("Apakah Anda yakin ingin menghapus email ini?")) return;
     try {
       const res = await fetch(`/api/emails/${id}`, { method: "DELETE" });
       if (res.ok) {
         fetchEmails();
+      } else {
+        const data = await res.json();
+        alert(`Gagal menghapus email: ${data.error || 'Unknown error'}`);
       }
     } catch (err) {
       console.error("Gagal menghapus email:", err);
+      alert("Terjadi kesalahan saat menghapus email.");
     }
   };
 
@@ -245,11 +249,12 @@ export default function EmailAlertsManager() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <button
+                            type="button"
                             onClick={() => handleDeleteEmail(email.id)}
-                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="relative z-10 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                             title="Hapus"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4 pointer-events-none" />
                           </button>
                         </td>
                       </tr>

@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { createAuditLog } from '@/lib/audit-logger';
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = parseInt(params.id, 10);
+    const resolvedParams = await params;
+    const id = parseInt(resolvedParams.id, 10);
     await query('DELETE FROM "BFS_EMS_Emails" WHERE id = $1', [id]);
 
     // Add audit log
