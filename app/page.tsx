@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [realtimeData, setRealtimeData] = useState<Record<string, any>>({});
   const [lastFetchTime, setLastFetchTime] = useState<string>("");
   const [roomList, setRoomList] = useState<string[]>(DEFAULT_ROOM_LIST);
+  const [allRooms, setAllRooms] = useState<string[]>(DEFAULT_ROOM_LIST);
 
   const getStatus = (
     temp: number,
@@ -56,7 +57,7 @@ export default function Dashboard() {
       fetchRooms();
     };
     window.addEventListener("ems-room-added", handleRoomAdded);
-    
+
     return () => {
       window.removeEventListener("ems-room-added", handleRoomAdded);
     };
@@ -80,33 +81,51 @@ export default function Dashboard() {
             data = await res.json();
           }
 
-          let dp1 = null;
-          let dp2 = null;
+          let dp1: number | null | undefined = undefined;
+          let dp2: number | null | undefined = undefined;
 
-          if (
-            roomName === "Filling" ||
-            roomName === "Transfer Plastic Moulding"
-          ) {
-            const resDp1 = await fetch(
-              `/api/latest-reading?unit_id=${encodeURIComponent(roomName + " - DP 1")}`,
-            );
+          // Cek apakah ruangan ini punya lebih dari 1 DP (dinamis dari database atau hardcoded legacy)
+          let isTwoDP = roomName === "Filling" || roomName === "Transfer Plastic Moulding";
+          if (allRooms.includes(roomName + " - DP 1") || allRooms.includes(roomName + " DP-1")) {
+            isTwoDP = true;
+          }
+
+          if (isTwoDP) {
+            dp1 = null;
+            dp2 = null;
+
+            // Fetch DP1
+            let resDp1 = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(roomName + " - DP 1")}`);
             if (resDp1.ok) {
-              const dp1Data = await resDp1.json();
-              dp1 = dp1Data?.differential_pressure ?? null;
+              const d = await resDp1.json();
+              if (d) dp1 = d.differential_pressure ?? null;
+            }
+            if (dp1 === null) {
+              resDp1 = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(roomName + " DP-1")}`);
+              if (resDp1.ok) {
+                const d = await resDp1.json();
+                if (d) dp1 = d.differential_pressure ?? null;
+              }
             }
 
-            const resDp2 = await fetch(
-              `/api/latest-reading?unit_id=${encodeURIComponent(roomName + " - DP 2")}`,
-            );
+            // Fetch DP2
+            let resDp2 = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(roomName + " - DP 2")}`);
             if (resDp2.ok) {
-              const dp2Data = await resDp2.json();
-              dp2 = dp2Data?.differential_pressure ?? null;
+              const d = await resDp2.json();
+              if (d) dp2 = d.differential_pressure ?? null;
             }
+            if (dp2 === null) {
+              resDp2 = await fetch(`/api/latest-reading?unit_id=${encodeURIComponent(roomName + " DP-2")}`);
+              if (resDp2.ok) {
+                const d = await resDp2.json();
+                if (d) dp2 = d.differential_pressure ?? null;
+              }
+            }
+          }
 
-            if (data) {
-              data.dp1 = dp1;
-              data.dp2 = dp2;
-            }
+          if (data) {
+            if (dp1 !== undefined) data.dp1 = dp1;
+            if (dp2 !== undefined) data.dp2 = dp2;
           }
 
           if (data) {
@@ -263,7 +282,7 @@ export default function Dashboard() {
     return () => {
       clearInterval(interval);
     };
-  }, [roomList]); // Refresh polling when room list changes
+  }, [roomList, allRooms]); // Refresh polling when room list changes
 
   // Fetch all rooms from API
   const fetchRooms = async () => {
@@ -272,7 +291,10 @@ export default function Dashboard() {
       if (res.ok) {
         const data = await res.json();
         if (data.length > 0) {
-          setRoomList(data);
+          setAllRooms(data);
+          // Filter out sub-rooms so they don't get rendered as separate cards
+          const baseRooms = data.filter((room: string) => !room.match(/(- DP \d+|DP-\d+| T-\d+| RH-\d+)$/i));
+          setRoomList(baseRooms);
         }
       }
     } catch (err) {
@@ -314,7 +336,7 @@ export default function Dashboard() {
             <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{activeRooms > 0 ? t("System Online") : t("System Offline")}</div>
           </div>
         </div>
-        
+
         <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex flex-col justify-center">
           <div className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">{t("Active Units")}</div>
           <div className="flex items-baseline gap-2">
@@ -372,13 +394,12 @@ export default function Dashboard() {
                   {/* Tagging Status */}
                   {isConnected && (
                     <div
-                      className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border ${
-                        status === "critical"
+                      className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border ${status === "critical"
                           ? "bg-red-500/20 text-red-400 border-red-500/50"
                           : status === "warning"
                             ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
                             : "bg-emerald-500/20 text-emerald-400 border-emerald-500/50"
-                      }`}
+                        }`}
                     >
                       {t(status)}
                     </div>
@@ -386,11 +407,10 @@ export default function Dashboard() {
 
                   {/* Indikator Live */}
                   <div
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5 ${
-                      isConnected
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5 ${isConnected
                         ? "bg-blue-500/10 text-blue-400"
                         : "bg-slate-100 dark:bg-slate-800 text-slate-500"
-                    }`}
+                      }`}
                   >
                     {isConnected && (
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
@@ -399,7 +419,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800/50 mt-2">
                 <div className={`grid ${data?.dp1 !== undefined && data?.dp2 !== undefined ? 'grid-cols-2 gap-y-6 gap-x-4' : 'grid-cols-3 gap-4'} items-center`}>
                   {/* Temperature */}

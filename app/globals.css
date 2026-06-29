@@ -3,17 +3,32 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc; /* slate-50 */
-  --foreground: #020617; /* slate-950 */
+  --background: #f8fafc;
+  /* slate-50 */
+  --foreground: #020617;
+  /* slate-950 */
 }
 
 .dark {
-  --background: #020617; /* slate-950 */
-  --foreground: #f8fafc; /* slate-50 */
+  --background: #020617;
+  /* slate-950 */
+  --foreground: #f8fafc;
+  /* slate-50 */
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   transition: background-color 0.3s, color 0.3s;
+}
+
+
+@keyframes loading {
+  0% {
+    width: 0%
+  }
+
+  100% {
+    width: 100%
+  }
 }

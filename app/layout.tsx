@@ -7,6 +7,7 @@ import { Providers } from "./providers";
 import { Toaster } from 'sonner';
 import AuditRouteListener from "@/components/AuditRouteListener";
 import TutorialComponent from "@/components/TutorialComponent";
+import { LoadingScreen } from "@/components/layout/LoadingScreen";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuditRouteListener />
         <Providers>
+          <LoadingScreen />
           <AppLayout>{children}</AppLayout>
           <TutorialComponent />
           <Toaster theme="dark" position="bottom-right" />

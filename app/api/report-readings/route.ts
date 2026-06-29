@@ -28,19 +28,14 @@ export async function POST(req: Request) {
     const values: any[] = [];
     let paramIndex = 1;
 
-    if (unit_id === 'Filling') {
-      query += ` WHERE unit_id IN ($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2})`;
-      values.push('Filling', 'Filling - DP 1', 'Filling - DP 2');
-      paramIndex += 3;
-    } else if (unit_id === 'Transfer Plastic Moulding') {
-      query += ` WHERE unit_id IN ($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2})`;
-      values.push('Transfer Plastic Moulding', 'Transfer Plastic Moulding - DP 1', 'Transfer Plastic Moulding - DP 2');
-      paramIndex += 3;
-    } else {
-      query += ` WHERE unit_id = $${paramIndex}`;
-      values.push(unit_id);
-      paramIndex += 1;
-    }
+    // Match base room OR sub-rooms (e.g. "Filling", "Filling - DP 1", "Sampling DP-1")
+    query += ` WHERE (unit_id = $${paramIndex} 
+                     OR unit_id LIKE $${paramIndex} || ' - DP %' 
+                     OR unit_id LIKE $${paramIndex} || ' DP-%'
+                     OR unit_id LIKE $${paramIndex} || ' T-%'
+                     OR unit_id LIKE $${paramIndex} || ' RH-%')`;
+    values.push(unit_id);
+    paramIndex += 1;
 
     if (start_date) {
       query += ` AND "timestamp" >= EXTRACT(EPOCH FROM $${paramIndex}::timestamp AT TIME ZONE 'Asia/Jakarta')`;
