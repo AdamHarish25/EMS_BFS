@@ -155,11 +155,11 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
       let isDp1 = false;
       let isDp2 = false;
 
-      if (rawUnit.endsWith('- DP 1')) {
-        baseUnit = rawUnit.replace(' - DP 1', '');
+      if (rawUnit.match(/(- DP 1| DP-1)$/i)) {
+        baseUnit = rawUnit.replace(/(- DP 1| DP-1)$/i, '');
         isDp1 = true;
-      } else if (rawUnit.endsWith('- DP 2')) {
-        baseUnit = rawUnit.replace(' - DP 2', '');
+      } else if (rawUnit.match(/(- DP 2| DP-2)$/i)) {
+        baseUnit = rawUnit.replace(/(- DP 2| DP-2)$/i, '');
         isDp2 = true;
       }
 
