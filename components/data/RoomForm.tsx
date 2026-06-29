@@ -11,7 +11,6 @@ interface Attribute {
   targetColumn: string;
   required: boolean;
   deletable: boolean;
-  suffix?: string; // For additional parameters, e.g., " - DP 2"
 }
 
 export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => void }) {
@@ -22,10 +21,43 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [attributes, setAttributes] = useState<Attribute[]>([
-    { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', required: true, deletable: false, suffix: '' },
-    { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', required: true, deletable: false, suffix: '' },
-    { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', required: true, deletable: false, suffix: '' }
+    { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', required: true, deletable: false },
+    { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', required: true, deletable: false },
+    { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', required: true, deletable: false }
   ]);
+
+  const getGeneratedName = (attr: Attribute, currentRoomName: string, allAttrs: Attribute[]) => {
+    if (!currentRoomName) return '[Room Name]';
+
+    const tempCount = allAttrs.filter(a => a.targetColumn === 'temperature').length;
+    const rhCount = allAttrs.filter(a => a.targetColumn === 'relative_humidity').length;
+    const dpCount = allAttrs.filter(a => a.targetColumn === 'differential_pressure').length;
+
+    if (tempCount > 1 || rhCount > 1 || dpCount > 1) {
+      if (attr.targetColumn === 'temperature' || attr.targetColumn === 'relative_humidity') {
+        if (tempCount === 1 && rhCount === 1) {
+          return `${currentRoomName}`;
+        }
+
+        if (attr.targetColumn === 'temperature') {
+          if (tempCount === 1) return `${currentRoomName}`;
+          const tIndex = allAttrs.filter(a => a.targetColumn === 'temperature').findIndex(a => a.id === attr.id) + 1;
+          return `${currentRoomName} T-${tIndex}`;
+        }
+        if (attr.targetColumn === 'relative_humidity') {
+          if (rhCount === 1) return `${currentRoomName}`;
+          const rIndex = allAttrs.filter(a => a.targetColumn === 'relative_humidity').findIndex(a => a.id === attr.id) + 1;
+          return `${currentRoomName} RH-${rIndex}`;
+        }
+      } else if (attr.targetColumn === 'differential_pressure') {
+        if (dpCount === 1) return `${currentRoomName}`;
+        const dIndex = allAttrs.filter(a => a.targetColumn === 'differential_pressure').findIndex(a => a.id === attr.id) + 1;
+        return `${currentRoomName} DP-${dIndex}`;
+      }
+    }
+
+    return currentRoomName;
+  };
 
   const addDifferentialPressure = () => {
     const dpCount = attributes.filter(attr => attr.targetColumn === 'differential_pressure').length;
@@ -38,8 +70,7 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
         externalLogId: '',
         targetColumn: 'differential_pressure',
         required: false,
-        deletable: true,
-        suffix: ` - DP ${dpCount + 1} (sesuaikan format)`
+        deletable: true
       }
     ]);
   };
@@ -71,14 +102,18 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
       }
     }
 
-    const rooms = attributes.map(attr => ({
-      external_log_id: Number(attr.externalLogId),
-      room_name: roomName + (attr.suffix || ''),
-      target_column: attr.targetColumn,
-      unit_display_name: attr.deletable ? roomName + (attr.suffix || '') : roomName,
-      line: line,
-      status: status
-    }));
+    const rooms = attributes.map(attr => {
+      const generatedName = getGeneratedName(attr, roomName, attributes);
+
+      return {
+        external_log_id: Number(attr.externalLogId),
+        room_name: generatedName,
+        target_column: attr.targetColumn,
+        unit_display_name: generatedName,
+        line: line,
+        status: status
+      };
+    });
 
     try {
       setIsSubmitting(true);
@@ -101,9 +136,9 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
       setLine('');
       setStatus('Active');
       setAttributes([
-        { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', required: true, deletable: false, suffix: '' },
-        { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', required: true, deletable: false, suffix: '' },
-        { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', required: true, deletable: false, suffix: '' }
+        { id: 'temp', name: 'Temperature', externalLogId: '', targetColumn: 'temperature', required: true, deletable: false },
+        { id: 'rh', name: 'Relative Humidity', externalLogId: '', targetColumn: 'relative_humidity', required: true, deletable: false },
+        { id: 'dp1', name: 'Differential Pressure 1', externalLogId: '', targetColumn: 'differential_pressure', required: true, deletable: false }
       ]);
     } catch (err: any) {
       toast.error(err.message || t("Error Add Room"));
@@ -149,7 +184,7 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
                   </button>
                 )}
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">ID</label>
                   <input
@@ -172,33 +207,17 @@ export default function RoomForm({ onAddRoom }: { onAddRoom?: (data: any) => voi
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Room Name</label>
-                  <input
-                    type="text"
-                    value={roomName + (attr.suffix || '')}
-                    readOnly
-                    className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-600 dark:text-slate-300 focus:outline-none cursor-not-allowed"
-                  />
-                </div>
               </div>
-              {attr.deletable && (
-                <div className="mt-3">
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Suffix</label>
-                  <input
-                    type="text"
-                    value={attr.suffix || ''}
-                    onChange={(e) => updateAttribute(attr.id, 'suffix', e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    placeholder="e.g. - DP 2"
-                  />
-                </div>
-              )}
-              {attr.deletable && (
-                <div className="mt-2 text-xs text-slate-400">
-                  Room name: {roomName || '[Room Name]'}{attr.suffix || ' - DP X'}
-                </div>
-              )}
+
+              <div className="mt-4">
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Generated Room Name</label>
+                <input
+                  type="text"
+                  value={getGeneratedName(attr, roomName, attributes)}
+                  readOnly
+                  className="w-full bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-500 dark:text-slate-400 focus:outline-none cursor-not-allowed"
+                />
+              </div>
             </div>
           ))}
         </div>
