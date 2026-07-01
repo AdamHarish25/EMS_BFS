@@ -156,14 +156,15 @@ export default function DataTable({ readings, exclusions, dataFilter = 'Semua Da
       let isDp2 = false;
 
       if (rawUnit.match(/(- DP 1| DP-1)$/i)) {
-        baseUnit = rawUnit.replace(/(- DP 1| DP-1)$/i, '');
+        baseUnit = rawUnit.replace(/(- DP 1| DP-1)$/i, '').trim();
         isDp1 = true;
       } else if (rawUnit.match(/(- DP 2| DP-2)$/i)) {
-        baseUnit = rawUnit.replace(/(- DP 2| DP-2)$/i, '');
+        baseUnit = rawUnit.replace(/(- DP 2| DP-2)$/i, '').trim();
         isDp2 = true;
       }
 
-      const timeKey = r.jam_asli || r.timestamp || r.timestampValue;
+      const rDate = new Date(r.timestampValue || r.timestamp || r.jam_asli || 0);
+      const timeKey = format(rDate, 'yyyy-MM-dd HH:mm');
       const key = `${timeKey}_${baseUnit}`;
 
       let existing = map.get(key);

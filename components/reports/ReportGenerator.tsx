@@ -180,7 +180,9 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
             isDp2 = true;
           }
 
-          const key = `${r.timestampValue}_${baseUnit}`;
+          const rDate = new Date(r.timestampValue || r.timestamp || r.jam_asli || 0);
+          const timeKey = format(rDate, 'yyyy-MM-dd HH:mm');
+          const key = `${timeKey}_${baseUnit}`;
           let existing = map.get(key);
           if (!existing) {
             existing = { ...r, unit_id: baseUnit, dp1: null, dp2: null };
