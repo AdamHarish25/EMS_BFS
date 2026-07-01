@@ -85,7 +85,16 @@ function MetricChart({
     isGreater = false;
   }
 
-  let percent = (yMax - threshold) / (yMax - yMin);
+  let percent = 0;
+  if (maxVal === minVal) {
+    if (isGreater) {
+      percent = maxVal >= threshold ? 1 : 0;
+    } else {
+      percent = maxVal <= threshold ? 0 : 1;
+    }
+  } else {
+    percent = (maxVal - threshold) / (maxVal - minVal);
+  }
   percent = Math.max(0, Math.min(1, percent));
 
   const gradientId = `color-${dataKey}-${title.replace(/\s+/g, '')}`;

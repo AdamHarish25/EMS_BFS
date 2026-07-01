@@ -32,3 +32,5 @@ Untuk versi lengkap dengan diagram, lihat file CHANGELOG.md di folder docs.
 ### Sesi 4 — Fitur Laporan Eksklusi Parameter & Perbaikan UI
 - Opsi pengecualian parameter (Suhu, Kelembapan, Tekanan) untuk tabel & grafik laporan (dan Ekspor PDF).
 - Penyeragaman dropdown "Pengecualian Data" agar hanya menampilkan root nama ruangan (tanpa parameter sub-ruangan).
+- Perbaikan algoritma "Data Grouping" yang menggabungkan (merge) baris DP dan Temp/RH yang berdekatan waktunya (presisi menit) agar tidak muncul sebagai duplikat baris.
+- Perbaikan kalkulasi pewarnaan gradien merah pada grafik (ReportChart) agar akurat merender warna merah hanya jika garis benar-benar menyentuh batas limit.

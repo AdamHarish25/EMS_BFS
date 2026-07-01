@@ -356,6 +356,27 @@ Menyamakan algoritma *filtering* daftar ruangan seperti yang ada di halaman *Dat
 
 ---
 
+### 4.3 — Perbaikan Duplikasi Baris pada Tabel (Data Grouping)
+**Masalah:**  
+Data dari sensor Suhu/Kelembapan (Temp/RH) dan sensor Tekanan (DP) masuk ke *database* dengan selisih waktu perekaman sekian milidetik. Ini mengakibatkan tabel di *Report* dan *Data Management* menampilkan dua baris yang terpisah untuk satu timestamp yang sama.
+**Solusi:**  
+Mengubah algoritma *grouping key* untuk memadatkan data menggunakan presisi tingkat menit (`yyyy-MM-dd HH:mm`). Pembacaan Temp/RH dan DP pada menit yang sama kini akan digabung ke dalam satu baris secara presisi.
+**File yang diubah:**
+- `components/data/DataTable.tsx`
+- `components/reports/ReportGenerator.tsx`
+
+---
+
+### 4.4 — Perbaikan Visual Gradien Grafik Laporan
+**Masalah:**  
+Garis pada grafik (Line Chart) berubah menjadi merah terlalu awal meskipun nilai datanya belum menyentuh garis batas waspada/tindakan (threshold limit).
+**Solusi:**  
+Sistem pewarnaan gradien grafik (SVG Linear Gradient) yang awalnya dihitung berdasarkan skala batas absolut sumbu Y (`yMax` dan `yMin`) kini diperbaiki. Karena *library* grafik (Recharts) merender gradien berdasarkan dimensi objek (data aktual tertinggi dan terendah / `objectBoundingBox`), perhitungan warna gradien kini dihitung dinamis menggunakan selisih antara batas nilai *threshold* dengan `maxVal` dan `minVal` dari data riil.
+**File yang diubah:**
+- `components/reports/ReportChart.tsx`
+
+---
+
 ## Ringkasan File yang Dimodifikasi
 
 | File | Jenis Perubahan |
