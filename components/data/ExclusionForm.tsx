@@ -25,13 +25,25 @@ export default function ExclusionForm({ onAddExclusion, readings = [] }: { onAdd
       const res = await fetch("/api/rooms");
       if (res.ok) {
         const data = await res.json();
-        if (data.length > 0) {
-          setRoomList(data);
-          setUnitId((prev) => (data.includes(prev) ? prev : data[0]));
+        if (Array.isArray(data) && data.length > 0) {
+          const baseRooms = (data as string[])
+            .filter((room): room is string => typeof room === 'string' && room.trim().length > 0)
+            .map((room) => room.trim())
+            .filter((room) => !room.match(/(- DP \d+|DP-\d+| T-\d+| RH-\d+)$/i));
+
+          if (baseRooms.length > 0) {
+            setRoomList(baseRooms);
+            setUnitId((prev) => (baseRooms.includes(prev) ? prev : baseRooms[0]));
+            return;
+          }
         }
       }
+      setRoomList(ROOMS);
+      setUnitId((prev) => (ROOMS.includes(prev) ? prev : ROOMS[0]));
     } catch (err) {
       console.error("Gagal menarik daftar ruangan:", err);
+      setRoomList(ROOMS);
+      setUnitId((prev) => (ROOMS.includes(prev) ? prev : ROOMS[0]));
     }
   };
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -16,6 +16,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   const { t } = useLanguage();
 
   // Filter States
+  const [excludedParams, setExcludedParams] = useState({ temp: false, rh: false, dp: false });
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reportType, setReportType] = useState('Semua Data');
@@ -23,25 +24,65 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
   const [dataInterval, setDataInterval] = useState('raw');
   const [serverReadings, setServerReadings] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [roomList, setRoomList] = useState<string[]>([
+    'Dispensing 1',
+    'Dispensing 2',
+    'Mixing',
+    'Transfer Plastic Moulding',
+    'WIP',
+    'Filling',
+  ]);
 
-  const uniqueRooms = React.useMemo(() => {
-    const allRooms = [
-      ...readings.map(r => {
-        let room = (r.unit_id || '').trim();
-        if (room.endsWith('- DP 1')) return room.replace(' - DP 1', '');
-        if (room.endsWith('- DP 2')) return room.replace(' - DP 2', '');
-        return room;
-      }),
-      ...exclusions.map(e => {
-        let room = (e.unit_id || '').trim();
-        if (room.endsWith('- DP 1')) return room.replace(' - DP 1', '');
-        if (room.endsWith('- DP 2')) return room.replace(' - DP 2', '');
-        return room;
-      })
-    ];
-    const rooms = Array.from(new Set(allRooms));
-    return rooms.filter(Boolean).sort();
-  }, [readings, exclusions]);
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const res = await fetch('/api/rooms');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const baseRooms = (data as string[])
+              .filter((room): room is string => typeof room === 'string' && room.trim().length > 0)
+              .map((room) => room.trim())
+              .filter((room) => !room.match(/(- DP \d+|DP-\d+| T-\d+| RH-\d+)$/i));
+
+            if (baseRooms.length > 0) {
+              setRoomList(baseRooms);
+              return;
+            }
+          }
+        }
+        setRoomList([
+          'Dispensing 1',
+          'Dispensing 2',
+          'Mixing',
+          'Transfer Plastic Moulding',
+          'WIP',
+          'Filling',
+        ]);
+      } catch (err) {
+        console.error('Gagal menarik daftar ruangan:', err);
+        setRoomList([
+          'Dispensing 1',
+          'Dispensing 2',
+          'Mixing',
+          'Transfer Plastic Moulding',
+          'WIP',
+          'Filling',
+        ]);
+      }
+    };
+
+    fetchRooms();
+
+    const handleRoomAdded = () => {
+      fetchRooms();
+    };
+
+    window.addEventListener('ems-room-added', handleRoomAdded);
+    return () => {
+      window.removeEventListener('ems-room-added', handleRoomAdded);
+    };
+  }, []);
 
   const parsedExclusions = useMemo(() => {
     return exclusions.map(exc => ({
@@ -131,11 +172,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
           let isDp1 = false;
           let isDp2 = false;
 
-          if (rawUnit.endsWith('- DP 1')) {
-            baseUnit = rawUnit.replace(' - DP 1', '');
+          if (rawUnit.match(/(- DP 1| DP-1)$/i)) {
+            baseUnit = rawUnit.replace(/(- DP 1| DP-1)$/i, '').trim();
             isDp1 = true;
-          } else if (rawUnit.endsWith('- DP 2')) {
-            baseUnit = rawUnit.replace(' - DP 2', '');
+          } else if (rawUnit.match(/(- DP 2| DP-2)$/i)) {
+            baseUnit = rawUnit.replace(/(- DP 2| DP-2)$/i, '').trim();
             isDp2 = true;
           }
 
@@ -363,6 +404,30 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         finalY = finalY + pdfHeight + 15;
       }
 
+      const tableHeaders = ['Timestamp', 'Unit ID'];
+      if (!excludedParams.temp) tableHeaders.push('Temp (°C)');
+      if (!excludedParams.rh) tableHeaders.push('RH (%)');
+      if (!excludedParams.dp) {
+        tableHeaders.push('Differential Pressure 1 (Pa)');
+        tableHeaders.push('Differential Pressure 2 (Pa)');
+      }
+      tableHeaders.push('Status', 'Comment/Reason');
+
+      const buildRow = (r: any, defaultStatus: string, defaultReason: string) => {
+        const row = [
+          format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+          r.unit_id,
+        ];
+        if (!excludedParams.temp) row.push(formatCellNumber(r.temperature));
+        if (!excludedParams.rh) row.push(formatCellNumber(r.relative_humidity));
+        if (!excludedParams.dp) {
+          row.push((r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure));
+          row.push(r.dp2 != null ? formatCellNumber(r.dp2) : '-');
+        }
+        row.push(defaultStatus, r.exclusionReason || r.comment || defaultReason);
+        return row;
+      };
+
       // VALID DATA TABLE (Only for 'Semua Data' or 'Non-Fumigasi')
       if (includeValidTable && validReadings.length > 0) {
         if (finalY > 250) { pdf.addPage(); finalY = 20; }
@@ -372,20 +437,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         pdf.text('Pembacaan Sensor Valid (Non-Fumigasi)', 14, finalY);
         finalY += 5;
 
-        const validRows = validReadings.map(r => [
-          format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm:ss'),
-          r.unit_id,
-          formatCellNumber(r.temperature),
-          formatCellNumber(r.relative_humidity),
-          (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
-          r.dp2 != null ? formatCellNumber(r.dp2) : '-',
-          'MS',
-          r.comment || '-'
-        ]);
+        const validRows = validReadings.map(r => buildRow(r, 'MS', '-'));
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure (Pa)', 'Differential Pressure 2 (Pa)', 'Status', 'Comment/Reason']],
+          head: [tableHeaders],
           body: validRows,
           theme: 'striped',
           headStyles: { fillColor: [59, 130, 246] },
@@ -400,30 +456,32 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               const dp2 = r.dp2 != null ? Number(r.dp2) : null;
 
               const applyWarning = () => {
-                data.cell.styles.fillColor = [254, 243, 199]; // amber-100
-                data.cell.styles.textColor = [180, 83, 9];    // amber-700
+                data.cell.styles.fillColor = [254, 243, 199];
+                data.cell.styles.textColor = [180, 83, 9];
                 data.cell.styles.fontStyle = 'bold';
               };
 
               const applyCritical = () => {
-                data.cell.styles.fillColor = [254, 226, 226]; // red-100
-                data.cell.styles.textColor = [153, 27, 27];   // red-800
+                data.cell.styles.fillColor = [254, 226, 226];
+                data.cell.styles.textColor = [153, 27, 27];
                 data.cell.styles.fontStyle = 'bold';
               };
 
-              if (data.column.index === 2) {
+              const colName = tableHeaders[data.column.index];
+
+              if (colName === 'Temp (°C)') {
                 if (temp > 25) applyCritical();
                 else if (temp > 24) applyWarning();
               }
-              if (data.column.index === 3) {
+              if (colName === 'RH (%)') {
                 if (rh > 60) applyCritical();
                 else if (rh > 59) applyWarning();
               }
-              if (data.column.index === 4) {
+              if (colName === 'Differential Pressure 1 (Pa)') {
                 if (dp <= 5) applyCritical();
                 else if (dp <= 8) applyWarning();
               }
-              if (data.column.index === 5 && dp2 != null) {
+              if (colName === 'Differential Pressure 2 (Pa)' && dp2 != null) {
                 if (dp2 <= 5) applyCritical();
                 else if (dp2 <= 8) applyWarning();
               }
@@ -443,20 +501,11 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
         pdf.text('Pembacaan Sensor Dikecualikan (Fumigasi / Anomali)', 14, finalY);
         finalY += 5;
 
-        const excludedRows = excludedReadings.map(r => [
-          format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm:ss'),
-          r.unit_id,
-          formatCellNumber(r.temperature),
-          formatCellNumber(r.relative_humidity),
-          (r.dp1 != null || r.dp2 != null) ? (r.dp1 != null ? formatCellNumber(r.dp1) : '-') : formatCellNumber(r.differential_pressure),
-          r.dp2 != null ? formatCellNumber(r.dp2) : '-',
-          'TMS',
-          r.exclusionReason || '-'
-        ]);
+        const excludedRows = excludedReadings.map(r => buildRow(r, 'TMS', '-'));
 
         autoTable(pdf, {
           startY: finalY,
-          head: [['Timestamp', 'Unit ID', 'Temp (°C)', 'RH (%)', 'Differential Pressure 1 / Differential Pressure', 'Differential Pressure 2 (Pa)', 'Status', 'Comment/Reason']],
+          head: [tableHeaders],
           body: excludedRows,
           theme: 'striped',
           headStyles: { fillColor: [239, 68, 68] },
@@ -471,30 +520,32 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               const dp2 = r.dp2 != null ? Number(r.dp2) : null;
 
               const applyWarning = () => {
-                data.cell.styles.fillColor = [254, 243, 199]; // amber-100
-                data.cell.styles.textColor = [180, 83, 9];    // amber-700
+                data.cell.styles.fillColor = [254, 243, 199];
+                data.cell.styles.textColor = [180, 83, 9];
                 data.cell.styles.fontStyle = 'bold';
               };
 
               const applyCritical = () => {
-                data.cell.styles.fillColor = [254, 226, 226]; // red-100
-                data.cell.styles.textColor = [153, 27, 27];   // red-800
+                data.cell.styles.fillColor = [254, 226, 226];
+                data.cell.styles.textColor = [153, 27, 27];
                 data.cell.styles.fontStyle = 'bold';
               };
 
-              if (data.column.index === 2) {
+              const colName = tableHeaders[data.column.index];
+
+              if (colName === 'Temp (°C)') {
                 if (temp > 25) applyCritical();
                 else if (temp > 24) applyWarning();
               }
-              if (data.column.index === 3) {
+              if (colName === 'RH (%)') {
                 if (rh > 60) applyCritical();
                 else if (rh > 59) applyWarning();
               }
-              if (data.column.index === 4) {
+              if (colName === 'Differential Pressure 1 (Pa)') {
                 if (dp <= 5) applyCritical();
                 else if (dp <= 8) applyWarning();
               }
-              if (data.column.index === 5 && dp2 != null) {
+              if (colName === 'Differential Pressure 2 (Pa)' && dp2 != null) {
                 if (dp2 <= 5) applyCritical();
                 else if (dp2 <= 8) applyWarning();
               }
@@ -521,23 +572,29 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       pdf.setTextColor(60);
       if (includeValidTable) {
         if (validReadings.length > 0) {
-          pdf.text(`Non-Fumigasi - Temperature (TT): Min = ${formatSummaryNumber(validStats.minTemp, '°C')} | Max = ${formatSummaryNumber(validStats.maxTemp, '°C')}`, 14, finalY);
-          finalY += 6;
-          pdf.text(`Non-Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(validStats.minRH, '%')} | Max = ${formatSummaryNumber(validStats.maxRH, '%')}`, 14, finalY);
-          finalY += 6;
-
-          if (validStats.hasDp1 || validStats.hasDp2) {
-            if (validStats.hasDp1) {
-              pdf.text(`Non-Fumigasi - Differential Pressure 1: Min = ${formatSummaryNumber(validStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP1, 'Pa')}`, 14, finalY);
-              finalY += 6;
-            }
-            if (validStats.hasDp2) {
-              pdf.text(`Non-Fumigasi - Differential Pressure 2: Min = ${formatSummaryNumber(validStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP2, 'Pa')}`, 14, finalY);
-              finalY += 6;
-            }
-          } else {
-            pdf.text(`Non-Fumigasi - Differential Pressure: Min = ${formatSummaryNumber(validStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP, 'Pa')}`, 14, finalY);
+          if (!excludedParams.temp) {
+            pdf.text(`Non-Fumigasi - Temperature (TT): Min = ${formatSummaryNumber(validStats.minTemp, '°C')} | Max = ${formatSummaryNumber(validStats.maxTemp, '°C')}`, 14, finalY);
             finalY += 6;
+          }
+          if (!excludedParams.rh) {
+            pdf.text(`Non-Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(validStats.minRH, '%')} | Max = ${formatSummaryNumber(validStats.maxRH, '%')}`, 14, finalY);
+            finalY += 6;
+          }
+
+          if (!excludedParams.dp) {
+            if (validStats.hasDp1 || validStats.hasDp2) {
+              if (validStats.hasDp1) {
+                pdf.text(`Non-Fumigasi - Differential Pressure 1: Min = ${formatSummaryNumber(validStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP1, 'Pa')}`, 14, finalY);
+                finalY += 6;
+              }
+              if (validStats.hasDp2) {
+                pdf.text(`Non-Fumigasi - Differential Pressure 2: Min = ${formatSummaryNumber(validStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP2, 'Pa')}`, 14, finalY);
+                finalY += 6;
+              }
+            } else {
+              pdf.text(`Non-Fumigasi - Differential Pressure: Min = ${formatSummaryNumber(validStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(validStats.maxDP, 'Pa')}`, 14, finalY);
+              finalY += 6;
+            }
           }
           finalY += 2;
         } else {
@@ -547,23 +604,29 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       }
       if (includeExcludedTable) {
         if (excludedReadings.length > 0) {
-          pdf.text(`Fumigasi - Temperature (TT): Min = ${formatSummaryNumber(excludedStats.minTemp, '°C')} | Max = ${formatSummaryNumber(excludedStats.maxTemp, '°C')}`, 14, finalY);
-          finalY += 6;
-          pdf.text(`Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(excludedStats.minRH, '%')} | Max = ${formatSummaryNumber(excludedStats.maxRH, '%')}`, 14, finalY);
-          finalY += 6;
-
-          if (excludedStats.hasDp1 || excludedStats.hasDp2) {
-            if (excludedStats.hasDp1) {
-              pdf.text(`Fumigasi - Differential Pressure 1: Min = ${formatSummaryNumber(excludedStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP1, 'Pa')}`, 14, finalY);
-              finalY += 6;
-            }
-            if (excludedStats.hasDp2) {
-              pdf.text(`Fumigasi - Differential Pressure 2: Min = ${formatSummaryNumber(excludedStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP2, 'Pa')}`, 14, finalY);
-              finalY += 6;
-            }
-          } else {
-            pdf.text(`Fumigasi - Differential Pressure: Min = ${formatSummaryNumber(excludedStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP, 'Pa')}`, 14, finalY);
+          if (!excludedParams.temp) {
+            pdf.text(`Fumigasi - Temperature (TT): Min = ${formatSummaryNumber(excludedStats.minTemp, '°C')} | Max = ${formatSummaryNumber(excludedStats.maxTemp, '°C')}`, 14, finalY);
             finalY += 6;
+          }
+          if (!excludedParams.rh) {
+            pdf.text(`Fumigasi - Relative Humidity (RH): Min = ${formatSummaryNumber(excludedStats.minRH, '%')} | Max = ${formatSummaryNumber(excludedStats.maxRH, '%')}`, 14, finalY);
+            finalY += 6;
+          }
+
+          if (!excludedParams.dp) {
+            if (excludedStats.hasDp1 || excludedStats.hasDp2) {
+              if (excludedStats.hasDp1) {
+                pdf.text(`Fumigasi - Differential Pressure 1: Min = ${formatSummaryNumber(excludedStats.minDP1, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP1, 'Pa')}`, 14, finalY);
+                finalY += 6;
+              }
+              if (excludedStats.hasDp2) {
+                pdf.text(`Fumigasi - Differential Pressure 2: Min = ${formatSummaryNumber(excludedStats.minDP2, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP2, 'Pa')}`, 14, finalY);
+                finalY += 6;
+              }
+            } else {
+              pdf.text(`Fumigasi - Differential Pressure: Min = ${formatSummaryNumber(excludedStats.minDP, 'Pa')} | Max = ${formatSummaryNumber(excludedStats.maxDP, 'Pa')}`, 14, finalY);
+              finalY += 6;
+            }
           }
           finalY += 2;
         } else {
@@ -573,36 +636,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
       }
       finalY += 2;
 
-      // Limit Formulas
-      // const limitTexts = [
-      //   "Parameter DP, RH, TT",
-      //   "",
-      //   "TT (Temperature) =",
-      //   "- Alert Limit = Maksimum 24 C / Maksimum 22 C (Area Kemas kelas D NBL Sterile 39)",
-      //   "- Action Limit = Maksimum 25 C",
-      //   "",
-      //   "RH (Relative Humidity) =",
-      //   "- Alert Limit = Maksimum 65 % / Maksimum 59 % (untuk kelas D Cepha, EyeDrop, dan NBL Steril (37,39,RTF))",
-      //   "  / Maksimum 53% (Area Kemas Kelas D NBL Sterile 39)",
-      //   "- Action Limit = Maksimum 70 % / Maksimum 60 % (untuk kelas D Cepha, EyeDrop, dan NBL Steril (37,39,RTF))",
-      //   "",
-      //   "DP (Differential Pressure) =",
-      //   "- Satu Grade: Alert 6 Pa; Action: 5 Pa (Coret salah satu) / Alert 8 Pa;",
-      //   "  Action 5 Pa (Area Kemas kelas D NBL Sterile 39)",
-      //   "- Beda 1 Grade: Alert: 11 Pa; Action: 10 Pa (Coret salah satu)",
-      //   "- Beda 2 Grade atau lebih: Alert: 21 Pa; Action: 20 Pa (Coret salah satu)"
-      // ];
-
       pdf.setFontSize(9);
       pdf.setTextColor(80);
-      // limitTexts.forEach(line => {
-      //   if (finalY > 280) {
-      //     pdf.addPage();
-      //     finalY = 20;
-      //   }
-      //   pdf.text(line, 14, finalY);
-      //   finalY += 5;
-      // });
 
       pdf.save(`AC-Report-${format(new Date(), 'yyyyMMdd-HHmm')}.pdf`);
     } catch (error) {
@@ -640,8 +675,8 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="Pilih Ruangan">{t("Select Room 2")}</option>
-              {uniqueRooms.map(r => (
-                <option key={r as string} value={r as string}>{r as string}</option>
+              {roomList.map((room) => (
+                <option key={room} value={room}>{room}</option>
               ))}
             </select>
           </div>
@@ -681,6 +716,25 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               <option value="Non-Fumigasi">{t("Valid Only")}</option>
               <option value="Fumigasi">{t("Excluded Only")}</option>
             </select>
+          </div>
+        </div>
+
+        {/* Exclude Parameter UI */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t("Exclude Parameter")}</label>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="rounded text-blue-500 w-4 h-4" checked={excludedParams.temp} onChange={e => setExcludedParams(p => ({ ...p, temp: e.target.checked }))} />
+              <span className="text-sm text-slate-700 dark:text-slate-200">{t("TEMP Only")}</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="rounded text-blue-500 w-4 h-4" checked={excludedParams.rh} onChange={e => setExcludedParams(p => ({ ...p, rh: e.target.checked }))} />
+              <span className="text-sm text-slate-700 dark:text-slate-200">{t("RH Only")}</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="rounded text-blue-500 w-4 h-4" checked={excludedParams.dp} onChange={e => setExcludedParams(p => ({ ...p, dp: e.target.checked }))} />
+              <span className="text-sm text-slate-700 dark:text-slate-200">{t("DP Only")}</span>
+            </label>
           </div>
         </div>
 
@@ -766,7 +820,7 @@ export default function ReportGenerator({ readings, exclusions }: { readings: an
               <p className="text-sm mt-2">{t("Fill Filter PDF")}</p>
             </div>
           ) : (
-            <ReportChart validReadings={downsampleData(validReadings, 200)} excludedReadings={downsampleData(excludedReadings, 200)} />
+            <ReportChart validReadings={downsampleData(validReadings, 200)} excludedReadings={downsampleData(excludedReadings, 200)} excludedParams={excludedParams} />
           )}
         </div>
       </div>

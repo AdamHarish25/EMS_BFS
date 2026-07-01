@@ -9,9 +9,10 @@
 1. [Sesi 1 — Stabilisasi Data Exclusion Pipeline](#sesi-1)
 2. [Sesi 2 — Perbaikan Report, Performance & Security](#sesi-2)
 3. [Sesi 3 — Dashboard Real-Time & Notifikasi Email](#sesi-3)
-4. [Ringkasan File yang Dimodifikasi](#file-dimodifikasi)
-5. [Struktur ENV](#env)
-6. [Arsitektur Data Flow](#arsitektur)
+4. [Sesi 4 — Fitur Laporan Eksklusi Parameter & Perbaikan UI](#sesi-4)
+5. [Ringkasan File yang Dimodifikasi](#file-dimodifikasi)
+6. [Struktur ENV](#env)
+7. [Arsitektur Data Flow](#arsitektur)
 
 ---
 
@@ -327,6 +328,31 @@ NEXT_PUBLIC_NODE_RED_URL=http://10.165.40.13:1880
 
 **File yang diubah:**
 - `components/layout/Sidebar.tsx`
+
+---
+
+## Sesi 4 — Fitur Laporan Eksklusi Parameter & Perbaikan UI
+
+### 4.1 — Filter Eksklusi Parameter pada Laporan
+**Deskripsi:**  
+Pengguna sekarang memiliki opsi untuk mengecualikan parameter spesifik (Suhu, Kelembapan, dan Tekanan) dari pembuatan laporan (grafik dan ekspor PDF) jika parameter tersebut tidak relevan untuk dianalisis.
+**Detail Perubahan:**
+- **Tabel & Ringkasan Dinamis:** Header tabel PDF, isi baris, serta ringkasan minimum/maksimum otomatis menyesuaikan terhadap parameter yang dieksklusi.
+- **Grafik Kondisional:** Menyembunyikan komponen grafik (Suhu, Kelembapan, atau Tekanan) apabila checkbox eksklusinya dicentang.
+**File yang diubah:**
+- `contexts/LanguageContext.tsx`
+- `components/reports/ReportGenerator.tsx`
+- `components/reports/ReportChart.tsx`
+
+---
+
+### 4.2 — Perbaikan Struktur Dropdown Ruangan pada Form Pengecualian Data
+**Masalah:**  
+Dropdown untuk memilih nama ruangan pada "Pengecualian Data" (*Exclusion Form*) sebelumnya menampilkan sub-parameter (`- DP 1`, `- DP 2`, dll) secara terpisah yang seharusnya hanya nama induk (base name) saja.
+**Solusi:**  
+Menyamakan algoritma *filtering* daftar ruangan seperti yang ada di halaman *Data Management* dan *Report*.
+**File yang diubah:**
+- `components/data/ExclusionForm.tsx`
 
 ---
 

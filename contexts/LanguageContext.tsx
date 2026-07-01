@@ -145,7 +145,11 @@ const translations: Record<Language, Record<string, string>> = {
     "No Activity Logs": "Belum ada data log aktivitas",
     "Filter Configuration": "Pengaturan Filter",
     "No Filter Found": "Tidak ada data yang sesuai dengan filter ",
-    "Show Me How": "Tunjukkan Caranya"
+    "Show Me How": "Tunjukkan Caranya",
+    "Exclude Parameter": "Kecualikan Parameter",
+    "TEMP Only": "Suhu (TEMP)",
+    "RH Only": "Kelembapan (RH)",
+    "DP Only": "Tekanan (DP)"
   },
   en: {
     "System Dashboard": "System Dashboard",
@@ -282,7 +286,11 @@ const translations: Record<Language, Record<string, string>> = {
     "No Activity Logs": "No activity logs available",
     "Filter Configuration": "Filter Configuration",
     "No Filter Found": "No data found matching the filter ",
-    "Show Me How": "Show Me How"
+    "Show Me How": "Show Me How",
+    "Exclude Parameter": "Exclude Parameter",
+    "TEMP Only": "Temperature (TEMP)",
+    "RH Only": "Relative Humidity (RH)",
+    "DP Only": "Differential Pressure (DP)"
   }
 };
 

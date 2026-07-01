@@ -23,5 +23,12 @@ Untuk versi lengkap dengan diagram, lihat file CHANGELOG.md di folder docs.
 - DB connection timeout (5 detik)
 - Semua config sensitif pindah ke `.env.local`
 
+### Sesi 3 — Dashboard Real-Time & Notifikasi Email
+- UI Filter Tipe Data (Semua, Non-Fumigasi, Fumigasi) di Data Management
+- Indikator Visual Waktu Fetch Terakhir di Header Dashboard
+- Sistem Peringatan Node-RED (via SMTP Email) untuk Anomali TMS
+- Pembaruan Branding Sidebar ("AHU Monitoring EMS BFS")
 
-
+### Sesi 4 — Fitur Laporan Eksklusi Parameter & Perbaikan UI
+- Opsi pengecualian parameter (Suhu, Kelembapan, Tekanan) untuk tabel & grafik laporan (dan Ekspor PDF).
+- Penyeragaman dropdown "Pengecualian Data" agar hanya menampilkan root nama ruangan (tanpa parameter sub-ruangan).
