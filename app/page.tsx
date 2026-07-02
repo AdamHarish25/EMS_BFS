@@ -18,6 +18,23 @@ export default function Dashboard() {
   const [lastFetchTime, setLastFetchTime] = useState<string>("");
   const [roomList, setRoomList] = useState<string[]>(DEFAULT_ROOM_LIST);
   const [allRooms, setAllRooms] = useState<string[]>(DEFAULT_ROOM_LIST);
+  const [filterType, setFilterType] = useState<"all" | "hardcoded" | "other">("all");
+
+  const displayedRooms = useMemo(() => {
+    if (filterType === "hardcoded") {
+      return roomList.filter((room) => DEFAULT_ROOM_LIST.includes(room));
+    }
+    if (filterType === "other") {
+      return roomList.filter((room) => !DEFAULT_ROOM_LIST.includes(room));
+    }
+    return roomList;
+  }, [roomList, filterType]);
+
+  const displayedData = useMemo(() => {
+    return Object.entries(realtimeData)
+      .filter(([room]) => displayedRooms.includes(room))
+      .map(([, data]) => data);
+  }, [realtimeData, displayedRooms]);
 
   const getStatus = (
     temp: number,
@@ -303,10 +320,10 @@ export default function Dashboard() {
   };
 
   // Hitung KPI
-  const totalRooms = roomList.length;
-  const activeRooms = Object.values(realtimeData).filter(d => !!d).length;
-  const criticalRooms = Object.values(realtimeData).filter(d => d && d.status === 'critical').length;
-  const warningRooms = Object.values(realtimeData).filter(d => d && d.status === 'warning').length;
+  const totalRooms = displayedRooms.length;
+  const activeRooms = displayedData.filter(d => !!d).length;
+  const criticalRooms = displayedData.filter(d => d && d.status === 'critical').length;
+  const warningRooms = displayedData.filter(d => d && d.status === 'warning').length;
 
   useEffect(() => {
     // Broadcast status to the sidebar for instant visual sync
@@ -315,16 +332,31 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
-          {t("System Dashboard")}
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400">
-          {t("Monitor Central AC").replace(
-            "......",
-            lastFetchTime ? lastFetchTime : "...",
-          )}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
+            {t("System Dashboard")}
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400">
+            {t("Monitor Central AC").replace(
+              "......",
+              lastFetchTime ? lastFetchTime : "...",
+            )}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Filter:</span>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as any)}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm"
+          >
+            <option value="all">Semua Ruangan</option>
+            <option value="hardcoded">Ruangan Utama (6)</option>
+            <option value="other">Ruangan Lainnya</option>
+          </select>
+        </div>
       </div>
 
       {/* KPI SUMMARY CARDS */}
@@ -362,7 +394,7 @@ export default function Dashboard() {
 
       {/* REAL-TIME ROOMS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
-        {roomList.map((room) => {
+        {displayedRooms.map((room) => {
           const data = realtimeData[room];
           const isConnected = !!data;
 
@@ -395,10 +427,10 @@ export default function Dashboard() {
                   {isConnected && (
                     <div
                       className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border ${status === "critical"
-                          ? "bg-red-500/20 text-red-400 border-red-500/50"
-                          : status === "warning"
-                            ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
-                            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/50"
+                        ? "bg-red-500/20 text-red-400 border-red-500/50"
+                        : status === "warning"
+                          ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
+                          : "bg-emerald-500/20 text-emerald-400 border-emerald-500/50"
                         }`}
                     >
                       {t(status)}
@@ -408,8 +440,8 @@ export default function Dashboard() {
                   {/* Indikator Live */}
                   <div
                     className={`px-2.5 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5 ${isConnected
-                        ? "bg-blue-500/10 text-blue-400"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                      ? "bg-blue-500/10 text-blue-400"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-500"
                       }`}
                   >
                     {isConnected && (

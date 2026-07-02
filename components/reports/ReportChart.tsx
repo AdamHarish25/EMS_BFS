@@ -85,6 +85,16 @@ function MetricChart({
     isGreater = false;
   }
 
+  // Membuat yMin dan yMax menjadi kelipatan 5 (0, 5, 10, 15, dst) agar mudah dibaca
+  const step = 5;
+  yMin = Math.floor(yMin / step) * step;
+  yMax = Math.ceil(yMax / step) * step;
+  
+  const ticks = [];
+  for (let i = yMin; i <= yMax; i += step) {
+    ticks.push(i);
+  }
+
   let percent = 0;
   if (maxVal === minVal) {
     if (isGreater) {
@@ -123,15 +133,23 @@ function MetricChart({
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="black" vertical={true} />
-        <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={true} axisLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }} />
+        <XAxis 
+          dataKey="time" 
+          stroke="#475569" 
+          fontSize={12} 
+          fontWeight={500}
+          tickLine={true} 
+          axisLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }} 
+        />
         <YAxis
-          stroke="#64748b"
-          fontSize={11}
+          stroke="#475569"
+          fontSize={12}
+          fontWeight={500}
           tickLine={true}
           axisLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }}
           domain={[yMin, yMax]}
+          ticks={ticks}
           allowDataOverflow
-          tickFormatter={(val) => Number(val).toFixed(2)}
         />
         <ReferenceLine
           y={warningLimit}
