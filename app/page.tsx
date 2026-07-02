@@ -1,7 +1,8 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { Thermometer, Droplets, Wind } from "lucide-react";
+import { Thermometer, Droplets, Wind, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 
 const DEFAULT_ROOM_LIST = [
   "Dispensing 1",
@@ -19,6 +20,56 @@ export default function Dashboard() {
   const [roomList, setRoomList] = useState<string[]>(DEFAULT_ROOM_LIST);
   const [allRooms, setAllRooms] = useState<string[]>(DEFAULT_ROOM_LIST);
   const [filterType, setFilterType] = useState<"all" | "hardcoded" | "other">("all");
+
+  const [editingRoom, setEditingRoom] = useState<string | null>(null);
+  const [editingAttributes, setEditingAttributes] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleEditRoom = async (roomName: string) => {
+    setEditingRoom(roomName);
+    setEditingAttributes([]);
+    try {
+      const res = await fetch(`/api/get-room-details?roomName=${encodeURIComponent(roomName)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setEditingAttributes(data);
+      } else {
+        toast.error("Gagal mengambil data ruangan");
+        setEditingRoom(null);
+      }
+    } catch (err) {
+      toast.error("Gagal mengambil data ruangan");
+      setEditingRoom(null);
+    }
+  };
+
+  const handleSaveRoom = async () => {
+    setIsSaving(true);
+    try {
+      const payload = editingAttributes.map((attr) => ({
+        id: attr.id,
+        external_log_id: Number(attr.external_log_id),
+      }));
+
+      const res = await fetch("/api/edit-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attributes: payload }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Berhasil mengubah ID Sensor");
+        setEditingRoom(null);
+      } else {
+        toast.error(data.error || "Gagal mengubah ID Sensor");
+      }
+    } catch (err) {
+      toast.error("Gagal mengubah ID Sensor");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const displayedRooms = useMemo(() => {
     if (filterType === "hardcoded") {
@@ -420,7 +471,16 @@ export default function Dashboard() {
               className={`p-5 rounded-2xl border ${borderColor} ${bgGlow} shadow-lg transition-all duration-300`}
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{room}</h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{room}</h3>
+                  <button 
+                    onClick={() => handleEditRoom(room)}
+                    className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                    title="Edit Sensor ID"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-2">
                   {/* Tagging Status */}
@@ -522,6 +582,59 @@ export default function Dashboard() {
           );
         })}
       </div>
+
+      {editingRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Edit Sensor ID - {editingRoom}</h3>
+            {editingAttributes.length === 0 ? (
+              <div className="flex justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                {editingAttributes.map((attr, idx) => (
+                  <div key={attr.id} className="flex flex-col gap-1">
+                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize flex justify-between">
+                      <span>{attr.target_column.replace('_', ' ')}</span>
+                      {attr.room_name !== attr.unit_display_name && (
+                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-slate-500">
+                          {attr.room_name}
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type="number"
+                      value={attr.external_log_id || ''}
+                      onChange={(e) => {
+                        const newVal = [...editingAttributes];
+                        newVal[idx].external_log_id = e.target.value;
+                        setEditingAttributes(newVal);
+                      }}
+                      className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100 dark:border-slate-800/50">
+              <button
+                onClick={() => setEditingRoom(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveRoom}
+                disabled={isSaving || editingAttributes.length === 0}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl disabled:opacity-50 transition-colors shadow-lg shadow-blue-500/20"
+              >
+                {isSaving ? "Menyimpan..." : "Simpan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
