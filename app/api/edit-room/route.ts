@@ -23,6 +23,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'ID dan external_log_id diperlukan' }, { status: 400 });
       }
 
+      // Hapus ruangan lama yang terlanjur menggunakan ID sensor ini agar bisa di-"replace"
+      await client.query(`
+        DELETE FROM public."BFS_EMS_Room" 
+        WHERE external_log_id = $1 AND id != $2
+      `, [external_log_id, id]);
+
       const query = `
         UPDATE public."BFS_EMS_Room" 
         SET external_log_id = $1, updated_at = now()

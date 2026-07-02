@@ -30,6 +30,14 @@ export async function POST(req: Request) {
           COALESCE((SELECT MAX(id) FROM public."BFS_EMS_Room"), 0) + 1,
           $1, $2, $3, $4, $5, $6, now(), now()
         )
+        ON CONFLICT (external_log_id) 
+        DO UPDATE SET 
+          room_name = EXCLUDED.room_name,
+          target_column = EXCLUDED.target_column,
+          unit_display_name = EXCLUDED.unit_display_name,
+          "Line" = EXCLUDED."Line",
+          status = EXCLUDED.status,
+          updated_at = now()
         RETURNING *
       `;
       
