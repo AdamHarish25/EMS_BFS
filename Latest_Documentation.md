@@ -39,3 +39,17 @@ Berikut adalah rute dan fungsi yang kini memiliki sistem validasi tipe *AuditMod
 
 - **Pencetakan Laporan (`app/api/report-readings/route.ts`)**
   - **EXPORT**: Tersimpan pada *module* `REPORTING`. Mencatat aktivitas pembuatan dan penarikan data laporan spesifik untuk unit tertentu berdasarkan *range* waktu yang dipilih.
+
+## 4. Manajemen ID Sensor & Perbaikan Konflik (*Dashboard* & *Data Management*)
+Pembaruan terbaru berfokus pada fleksibilitas pengelolaan **ID Sensor (external_log_id)** langsung dari Dashboard Utama dan penanganan konflik (*Unique Constraint*) pada database.
+
+- **Edit ID Langsung dari Dashboard Utama (`app/page.tsx`)**:
+  - Menambahkan tombol **Edit (⚙️)** pada setiap kartu ruangan di halaman Dashboard.
+  - Saat diklik, akan memunculkan *modal* yang menarik parameter sensor secara spesifik untuk ruangan tersebut dari `/api/get-room-details`.
+  - Mengimplementasikan penanganan input ID bernilai `0` dengan menggunakan *Nullish Coalescing* (`??`) agar nilai `0` tidak dianggap *falsy/null* dan bisa digunakan sebagai ID.
+
+- **Penanganan Konflik ID / *Replacement* (`app/api/edit-room/route.ts` & `app/api/add-room/route.ts`)**:
+  - Kolom `external_log_id` pada tabel `BFS_EMS_Room` memiliki aturan *Unique Constraint* (satu ID hanya boleh dimiliki satu sensor ruangan).
+  - **Sebelumnya**: Jika pengguna memasukkan ID yang sudah dipakai ruangan lain, API akan *error* (gagal). Jika ditangani dengan cara menghapus baris lama yang *conflict*, ini akan mengakibatkan parameter ruangan lama tersebut benar-benar lenyap dari database.
+  - **Sekarang**: Sistem menggunakan mekanisme **"Disconnect & Reassign"**. Jika ID yang diinput terdeteksi bentrok dengan ruangan lain, sistem akan mengambil alih kepemilikan ID tersebut, **namun tidak menghapus** baris parameter ruangan lama. Sebaliknya, sistem memberikan nilai ID unik sementara bernilai negatif berdasarkan UNIX Timestamp (`-(EXTRACT(EPOCH FROM now())::int + id)`) pada ruangan lama. 
+  - Manfaat: Ruangan lama akan terputus dari ID sensor aslinya (membebaskan ID tersebut untuk ruangan baru), tetapi parameter ruangan lama tersebut tetap aman di dalam struktur database sehingga tidak hilang dari layar *Data Management* pengguna.
