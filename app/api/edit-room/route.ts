@@ -18,14 +18,15 @@ export async function POST(req: Request) {
     for (const attr of attributes) {
       const { id, external_log_id } = attr;
 
-      if (!id || !external_log_id) {
+      if (id === undefined || external_log_id === undefined) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'ID dan external_log_id diperlukan' }, { status: 400 });
       }
 
-      // Hapus ruangan lama yang terlanjur menggunakan ID sensor ini agar bisa di-"replace"
+      // Kosongkan kepemilikan ID sensor lama tanpa menghapus datanya (menggunakan angka negatif unik)
       await client.query(`
-        DELETE FROM public."BFS_EMS_Room" 
+        UPDATE public."BFS_EMS_Room" 
+        SET external_log_id = -(EXTRACT(EPOCH FROM now())::int + id), updated_at = now()
         WHERE external_log_id = $1 AND id != $2
       `, [external_log_id, id]);
 

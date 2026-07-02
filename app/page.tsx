@@ -605,7 +605,7 @@ export default function Dashboard() {
                     </label>
                     <input
                       type="number"
-                      value={attr.external_log_id || ''}
+                      value={attr.external_log_id ?? ''}
                       onChange={(e) => {
                         const newVal = [...editingAttributes];
                         newVal[idx].external_log_id = e.target.value;
